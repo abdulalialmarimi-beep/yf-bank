@@ -466,4 +466,4 @@ async def wheel_cmd(interaction: discord.Interaction, bet: int):
         ("0.5x 🔴", 0.5, "🔴", C_RED),
         ("0.8x ⚫", 0.8, "⚫", C_ORANGE),
         ("1x 🔵", 1.0, "🔵", C_BLUE),
-        ("1.5x 
+        ("1.5x 🟢", 1.5, "🟢", C_GREEN),
