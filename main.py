@@ -958,7 +958,7 @@ async def crash_cmd(ctx, bet: int):
     data["balance"] += winnings - bet
     data["total_earned"] += winnings - bet
     data["wins"] += 1
-        data["games_played"] += 1
+    data["games_played"] += 1
     data["total_gambled"] += bet
     save_db(bot.db)
     e = emb(f"🎉 وصلت للحد الأقصى! x{multiplier:.2f}", f"ربحت **${winnings:,}**", C_GREEN, image_key="crash")
