@@ -67,53 +67,53 @@ DB_FILE = "yf_bank_data.json"
 
 IMAGES = {
     # الصور الرئيسية
-    "logo": "https://cdn.discordapp.com/attachments/.../logo.png",       # ← استبدل
-    "bank": "https://cdn.discordapp.com/attachments/.../bank.png",       # ← استبدل
+    "logo": None,       # ← استبدل
+    "bank": None,       # ← استبدل
 
     # الصور المالية
-    "balance": "https://cdn.discordapp.com/attachments/.../balance.png",   # ← استبدل
-    "daily": "https://cdn.discordapp.com/attachments/.../daily.png",     # ← استبدل
-    "top": "https://cdn.discordapp.com/attachments/.../top.png",         # ← استبدل
-    "broke": "https://cdn.discordapp.com/attachments/.../broke.png",     # ← استبدل
-    "transfer": "https://cdn.discordapp.com/attachments/.../transfer.png", # ← استبدل
+    "balance": None,   # ← استبدل
+    "daily": None,     # ← استبدل
+    "top": None,         # ← استبدل
+    "broke": None,     # ← استبدل
+    "transfer": None, # ← استبدل
 
     # السوق والتداول
-    "market": "https://cdn.discordapp.com/attachments/.../market.png",   # ← استبدل
-    "properties": "https://cdn.discordapp.com/attachments/.../properties.png", # ← استبدل
+    "market": None,   # ← استبدل
+    "properties": None, # ← استبدل
 
     # الألعاب
-    "games": "https://cdn.discordapp.com/attachments/.../games.png",   # ← استبدل
-    "slots": "https://cdn.discordapp.com/attachments/.../slots.png",   # ← استبدل
-    "wheel": "https://cdn.discordapp.com/attachments/.../wheel.png",   # ← استبدل
-    "blackjack": "https://cdn.discordapp.com/attachments/.../blackjack.png", # ← استبدل
-    "crash": "https://cdn.discordapp.com/attachments/.../crash.png",   # ← استبدل
-    "dice": "https://cdn.discordapp.com/attachments/.../dice.png",     # ← استبدل
-    "chicken": "https://cdn.discordapp.com/attachments/.../chicken.png", # ← استبدل
-    "colors": "https://cdn.discordapp.com/attachments/.../colors.png", # ← استبدل
-    "fruits": "https://cdn.discordapp.com/attachments/.../fruits.png", # ← استبدل
-    "boxes": "https://cdn.discordapp.com/attachments/.../boxes.png",   # ← استبدل
-    "gamble": "https://cdn.discordapp.com/attachments/.../gamble.png", # ← استبدل
-    "luck": "https://cdn.discordapp.com/attachments/.../luck.png",     # ← استبدل
+    "games": None,   # ← استبدل
+    "slots": None,   # ← استبدل
+    "wheel": None,   # ← استبدل
+    "blackjack": None, # ← استبدل
+    "crash": None,   # ← استبدل
+    "dice": None,     # ← استبدل
+    "chicken": None, # ← استبدل
+    "colors": None, # ← استبدل
+    "fruits": None, # ← استبدل
+    "boxes": None,   # ← استبدل
+    "gamble": None, # ← استبدل
+    "luck": None,     # ← استبدل
 
     # التفاعل الاجتماعي
-    "marry": "https://cdn.discordapp.com/attachments/.../marry.png",   # ← استبدل
-    "divorce": "https://cdn.discordapp.com/attachments/.../divorce.png", # ← استبدل
-    "marry_bot": "https://cdn.discordapp.com/attachments/.../marry_bot.png", # ← استبدل
-    "marry_self": "https://cdn.discordapp.com/attachments/.../marry_self.png", # ← استبدل
+    "marry": None,   # ← استبدل
+    "divorce": None, # ← استبدل
+    "marry_bot": None, # ← استبدل
+    "marry_self": None, # ← استبدل
 
     # النهب والحماية
-    "rob": "https://cdn.discordapp.com/attachments/.../rob.png",     # ← استبدل
-    "rob_fail": "https://cdn.discordapp.com/attachments/.../rob_fail.png", # ← استبدل
-    "protection": "https://cdn.discordapp.com/attachments/.../protection.png", # ← استبدل
+    "rob": None,     # ← استبدل
+    "rob_fail": None, # ← استبدل
+    "protection": None, # ← استبدل
 
     # المساعدة
-    "help": "https://cdn.discordapp.com/attachments/.../help.png",     # ← استبدل
-    "commands": "https://cdn.discordapp.com/attachments/.../commands.png", # ← استبدل
+    "help": None,     # ← استبدل
+    "commands": None, # ← استبدل
 
     # الإنجازات
-    "achievement": "https://cdn.discordapp.com/attachments/.../achievement.png", # ← استبدل
-    "jackpot": "https://cdn.discordapp.com/attachments/.../jackpot.png", # ← استبدل
-    "level_up": "https://cdn.discordapp.com/attachments/.../level_up.png", # ← استبدل
+    "achievement": None, # ← استبدل
+    "jackpot": None, # ← استبدل
+    "level_up": None, # ← استبدل
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -469,8 +469,8 @@ async def balance_cmd(ctx, user: Optional[discord.User] = None):
     embed.add_field(name="🔥 سلسلة", value=f"{data['streak']} يوم", inline=True)
 
     view = discord.ui.View()
-    view.add_item(discord.ui.Button(
-        view.add_item(discord.ui.Button(label="🏛️ إيداع", style=discord.ButtonStyle.success))
+    view.add_item(discord.ui.Button(label="💸 تحويل", style=discord.ButtonStyle.primary))
+    view.add_item(discord.ui.Button(label="🏛️ إيداع", style=discord.ButtonStyle.success))
     view.add_item(discord.ui.Button(label="📊 تداول", style=discord.ButtonStyle.secondary))
 
     await ctx.send(embed=embed, view=view)
@@ -598,7 +598,6 @@ async def market_cmd(ctx):
 @bot.command(name="ألعاب")
 async def games_cmd(ctx):
     embed = emb("🎮 ألعاب يونان فاملي", "💎 💎 💎 جاكبوت! +$50,000 ✨\nاختر لعبتك يا بطل!", C_GOLD, image_key="games")
-        embed = emb("🎮 ألعاب يونان فاملي", "💎 💎 💎 جاكبوت! +$50,000 ✨\nاختر لعبتك يا بطل!", C_GOLD, image_key="games")
     for key, game in GAMES.items():
         embed.add_field(
             name=f"{game['icon']} {game['name']}",
@@ -959,7 +958,7 @@ async def crash_cmd(ctx, bet: int):
     data["balance"] += winnings - bet
     data["total_earned"] += winnings - bet
     data["wins"] += 1
-    data["games_played"] += 1
+        data["games_played"] += 1
     data["total_gambled"] += bet
     save_db(bot.db)
     e = emb(f"🎉 وصلت للحد الأقصى! x{multiplier:.2f}", f"ربحت **${winnings:,}**", C_GREEN, image_key="crash")
@@ -1123,7 +1122,8 @@ async def marry_cmd(ctx, user: discord.User):
             view=None,
         )
 
-    yes_btn.callba
+    yes_btn.callback = yes_cb
+    no_btn.callback = no_cb
     view.add_item(yes_btn)
     view.add_item(no_btn)
     await ctx.send(embed=embed, view=view)
