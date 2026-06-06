@@ -1145,7 +1145,7 @@ async def crash_cmd(ctx, bet: int):
         e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
         await msg.edit(embed=e, view=None)
         @bot.command(name="نهب")
-async def rob_cmd(ctx, user: discord.User):
+    async def rob_cmd(ctx, user: discord.User):
     if user.id == ctx.author.id:
         await ctx.send(embed=emb("🤡 يا حبيبي!", get_funny("rob_self"), C_RED, image_key="rob_fail")); return
 
