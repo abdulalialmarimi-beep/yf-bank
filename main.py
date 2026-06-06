@@ -275,8 +275,7 @@ async def daily_cmd(interaction: discord.Interaction):
             remaining = timedelta(hours=24) - diff
             h = int(remaining.total_seconds() // 3600)
             m = int((remaining.total_seconds() % 3600) // 60)
-            embed = emb("⏳ المكافأة اليومية", f"لقد استلمت مكافأتك!
-ارجع بعد **{h}س {m}د**", C_RED)
+            embed = emb("⏳ المكافأة اليومية", f"لقد استلمت مكافأتك!\nارجع بعد **{h}س {m}د**", C_RED)
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
         if diff > timedelta(hours=48):
@@ -464,4 +463,7 @@ async def wheel_cmd(interaction: discord.Interaction, bet: int):
         return
     segments = [
         ("0x 💀", 0.0, "💀", C_RED),
-        ("0.5x 🔴", 0.5, "🔴", 
+        ("0.5x 🔴", 0.5, "🔴", C_RED),
+        ("0.8x ⚫", 0.8, "⚫", C_ORANGE),
+        ("1x 🔵", 1.0, "🔵", C_BLUE),
+        ("1.5x 
