@@ -760,7 +760,7 @@ async def luck_cmd(ctx, bet: int):
     embed.add_field(name="🪙 رصيدك",  value=f"${data['balance']:,}", inline=True)
     add_ach_field(embed, new_ach)
     await ctx.send(embed=embed)
-    @bot.command(name="دجاجة")
+@bot.command(name="دجاجة")
 async def chicken_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
     if bet < 50 or bet > 2000:
