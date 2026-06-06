@@ -2,6 +2,66 @@
 ╔══════════════════════════════════════════════════════════════════╗
 ║  YF BANK - Yonan Family Discord Economy Bot                     ║
 ║  أقوى بوت اقتصادي في تاريخ ديسكورد - عائلة يونان               ║
+╚══════════════════════════════════════════════════════════════════╝
+"""
+
+import discord
+from discord.ext import commands, tasks
+import asyncio
+import random
+import json
+import os
+from datetime import datetime, timedelta
+from typing import Optional
+
+BOT_TOKEN = os.getenv("DISCORD_TOKEN")
+if not BOT_TOKEN:
+    print("❌ خطأ: ما في توكن!")
+    exit(1)
+
+COMMAND_PREFIX = "-"
+C_GOLD=0xd4a843; C_GREEN=0x4ade80; C_RED=0xf87171; C_BLUE=0x60a5fa
+C_PINK=0xff69b4; C_PURPLE=0x9333ea; C_ORANGE=0xf97316; C_CYAN=0x22d3ee
+DB_FILE = "yf_bank_data.json"
+
+IMAGES = {
+    "logo":None,"bank":None,"balance":None,"daily":None,"top":None,
+    "broke":None,"transfer":None,"market":None,"properties":None,
+    "games":None,"slots":None,"wheel":None,"blackjack":None,"crash":None,
+    "dice":None,"chicken":None,"colors":None,"fruits":None,"boxes":None,
+    "gamble":None,"luck":None,"marry":None,"divorce":None,"marry_bot":None,
+    "marry_self":None,"rob":None,"rob_fail":None,"protection":None,
+    "help":None,"commands":None,"achievement":None,"jackpot":None,"level_up":None,
+}
+
+FUNNY_MESSAGES = {
+    "broke":["يا اخي حتى الفقر ما يجي فخامة زيك!","يونان فاملي ما يعرف الفقر! بس انت عضو شرفي في نادي الفقراء!","رصيدك صفر؟ حتى المهرجين عندهم فلوس اكثر منك!"],
+    "marry_bot":["يا حبيبي تبي تتزوج بوت؟","البوت قال: انا ما ابي اتزوج انسان بطيء المعالجة!"],
+    "marry_self":["تبي تتزوج نفسك؟ حتى المراة تستحي منك!","حتى نفسك ما تبي تتزوجك!"],
+    "rob_self":["تبي تسرق نفسك؟ يا ذكي! نفسك ما عندها فلوس اصلا!"],
+    "rob_poor":["تبي تسرق فقير؟ حتى اللصوص عندهم اخلاق!","الضحية فقير زيك! روحوا افتحوا نادي الفقراء!"],
+    "transfer_self":["تحول لنفسك؟ الفلوس راحت وجت لنفس المحفظة!"],
+    "divorce_cooldown":["يا ولد كم مرة تبي تطلق؟ يونان فاملي مش محكمة!","روح استقر شوي!"],
+    "already_married":["يا حبيبي انت متزوج! يونان فاملي مو مسلسل تركي!"],
+    "partner_married":["الشخص متزوج! يونان فاملي ما يقبل الخيانة!"],
+    "not_married":["انت مو متزوج! وش بتطلق؟ نفسك؟"],
+    "rob_fail":["الشرطة قبضت عليك! يونان فاملي ما يحمي اللصوص الفاشلين!","انكشفت! روح اشتغل شريف!"],
+    "rob_success":["يونان فاملي يفتخر بك! لص محترف!","مسكتها! يونان فاملي يسلم عليك!"],
+    "daily_streak":["يا سلام! سلسلة يونان فاملي قوية! {streak} ايام!","مستمر يا بطل!"],
+    "level_up":["يونان فاملي تهنئك! مستوى جديد!","صاروخ يونان فاملي!"],
+    "jackpot":["يا ولد! جاكبوت يونان فاملي! انت مليونير!","صرت غني! يونان فاملي تبغى قرض منك!"],
+    "protection_active":["عندك حماية يونان فاملي! ما حد يقدر يلمسك!"],
+    "buy_property":["صار عندك عقار! يونان فاملي تصير رجل اعمال!","استثمار ذكي!"],
+}
+
+def load_db():
+    if os.path.exists(DB_FILE):
+        with open(DB_FILE,"r",encoding="utf-8") as f: return json.load(f)
+    return {}
+"""
+╔══════════════════════════════════════════════════════════════════╗
+║  YF BANK - Yonan Family Discord Economy Bot                     ║
+║  أقوى بوت اقتصادي في تاريخ ديسكورد - عائلة يونان               ║
 ║  النسخة المطورة - كل الأوامر بالعربية مع صور وفكاهة             ║
 ╚══════════════════════════════════════════════════════════════════╝
 """
@@ -35,9 +95,6 @@ C_CYAN   = 0x22d3ee
 
 DB_FILE = "yf_bank_data.json"
 
-# ═══════════════════════════════════════════════════════════════════
-# الصور — ضع روابط مباشرة (Imgur / Discord CDN) أو اتركها None
-# ═══════════════════════════════════════════════════════════════════
 IMAGES = {
     "logo": None, "bank": None, "balance": None, "daily": None,
     "top": None, "broke": None, "transfer": None, "market": None,
@@ -50,9 +107,6 @@ IMAGES = {
     "level_up": None,
 }
 
-# ═══════════════════════════════════════════════════════════════════
-# رسائل فكاهية
-# ═══════════════════════════════════════════════════════════════════
 FUNNY_MESSAGES = {
     "broke": [
         "يا اخي حتى الفقر ما يجي فخامة زيك! محفظتك صارت تعيش في خيمة!",
@@ -79,9 +133,6 @@ FUNNY_MESSAGES = {
     "buy_property":      ["صار عندك عقار! يونان فاملي تصير رجل اعمال!", "استثمار ذكي! يونان فاملي تفتخر فيك!"],
 }
 
-# ═══════════════════════════════════════════════════════════════════
-# قاعدة البيانات
-# ═══════════════════════════════════════════════════════════════════
 def load_db():
     if os.path.exists(DB_FILE):
         with open(DB_FILE, "r", encoding="utf-8") as f:
@@ -158,11 +209,7 @@ ACHIEVEMENTS = {
     "level_50":     {"name": "إله",           "desc": "وصل للمستوى 50",       "reward": 100000},
     "properties_10":{"name": "مستثمر",       "desc": "اشترِ 10 ممتلكات",     "reward": 10000},
     "games_100":    {"name": "لاعب محترف",   "desc": "العب 100 لعبة",         "reward": 5000},
-}
-
-# ═══════════════════════════════════════════════════════════════════
-# إعدادات البوت
-# ═══════════════════════════════════════════════════════════════════
+    }
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
@@ -194,7 +241,7 @@ class YFBank(commands.Bot):
                 for k, prop in PROPERTIES.items()
             )
             if total_income > 0:
-                data["balance"]     += total_income
+                data["balance"]      += total_income
                 data["total_earned"] += total_income
         save_db(self.db)
 
@@ -205,9 +252,6 @@ class YFBank(commands.Bot):
 
 bot = YFBank()
 
-# ═══════════════════════════════════════════════════════════════════
-# دوال مساعدة
-# ═══════════════════════════════════════════════════════════════════
 def emb(title, desc="", color=C_GOLD, image_key=None, thumbnail_key=None):
     e = discord.Embed(title=title, description=desc, color=color, timestamp=datetime.now())
     logo = IMAGES.get("logo")
@@ -244,6 +288,7 @@ def get_funny(key, **kwargs):
 def check_achievements(data):
     new, achieved = [], set(data.get("achievements", []))
     checks = [
+        ("first_win",    data.get("wins", 0) >= 1),
         ("rich",         data["balance"] + data["bank"] >= 100_000),
         ("millionaire",  data["balance"] + data["bank"] >= 1_000_000),
         ("married",      data["married_to"] is not None),
@@ -268,19 +313,13 @@ def add_ach_field(embed, new_ach):
             name="🏆 إنجاز جديد!",
             value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
             inline=False,
-        )
-
-# ═══════════════════════════════════════════════════════════════════
-# الأوامر
-# ═══════════════════════════════════════════════════════════════════
-
-# ─── رصيد ───────────────────────────────────────────────────────
-@bot.command(name="رصيد")
+                             )
+        @bot.command(name="رصيد")
 async def balance_cmd(ctx, user: Optional[discord.User] = None):
     target = user or ctx.author
     data   = get_user(bot.db, str(target.id))
     total  = data["balance"] + data["bank"]
-    xp_needed  = data["level"] * 1000
+    xp_needed   = data["level"] * 1000
     xp_progress = data["xp"] % xp_needed if xp_needed else 0
     data["last_active"] = datetime.now().isoformat()
     save_db(bot.db)
@@ -303,7 +342,6 @@ async def balance_cmd(ctx, user: Optional[discord.User] = None):
     await ctx.send(embed=embed)
 
 
-# ─── يومي ───────────────────────────────────────────────────────
 @bot.command(name="يومي")
 async def daily_cmd(ctx):
     data = get_user(bot.db, str(ctx.author.id))
@@ -323,8 +361,8 @@ async def daily_cmd(ctx):
     streak_bonus = min(data["streak"] * 100, 5000)
     level_bonus  = data["level"] * 50
     total        = base + streak_bonus + level_bonus
-    data["balance"]     += total
-    data["last_daily"]   = now.isoformat()
+    data["balance"]      += total
+    data["last_daily"]    = now.isoformat()
     data["total_earned"] += total
     data["xp"]           += 100
 
@@ -336,76 +374,70 @@ async def daily_cmd(ctx):
     save_db(bot.db)
 
     embed = emb("🎁 تم استلام المكافأة!", color=C_GREEN, image_key="daily")
-    embed.add_field(name="💰 أساسية", value=f"${base:,}",                          inline=True)
+    embed.add_field(name="💰 أساسية", value=f"${base:,}",                             inline=True)
     embed.add_field(name="🔥 سلسلة",  value=f"${streak_bonus:,} (x{data['streak']})", inline=True)
-    embed.add_field(name="⚡ مستوى",  value=f"${level_bonus:,}",                    inline=True)
-    embed.add_field(name="💎 إجمالي", value=f"**${total:,}**",                      inline=False)
-    embed.add_field(name="🪙 رصيدك",  value=f"${data['balance']:,}",                inline=True)
-    embed.add_field(name="🔥 سلسلة",  value=f"**{data['streak']} أيام**",           inline=True)
-    if data["streak"] > 1:
-        embed.add_field(name="🎉 يونان فاملي تقول:", value=get_funny("daily_streak", streak=data["streak"]), inline=False)
+    embed.add_field(name="⚡ مستوى",  value=f"${level_bonus:,}",                       inline=True)
+    embed.add_field(name="💎 إجمالي", value=f"**${total:,}**",                         inline=False)
+    embed.add_field(name="🪙 رصيدك",  value=f"${data['balance']:,}",                   inline=True)
+    embed.add_field(name="🔥 سلسلة",  value=f"**{data['streak']} أيام**",              inline=True)
     add_ach_field(embed, new_ach)
     await ctx.send(embed=embed)
 
 
-# ─── مطنوخين ────────────────────────────────────────────────────
 @bot.command(name="مطنوخين")
 async def top_cmd(ctx):
-    embed = emb("🏆 قائمة المطنوخين — عائلة يونان", "أغنى وأقوى أعضاء العائلة! 💎", C_GOLD, image_key="top")
-    users_data = [
-        (m, d["balance"] + d["bank"], d["level"])
-        for uid, d in bot.db.items()
-        if (m := ctx.guild.get_member(int(uid)))
-    ]
-    users_data.sort(key=lambda x: x[1], reverse=True)
+    if not bot.db:
+        await ctx.send("❌ ما في بيانات!"); return
+    sorted_users = sorted(
+        bot.db.items(),
+        key=lambda x: x[1].get("balance", 0) + x[1].get("bank", 0),
+        reverse=True
+    )[:10]
+    embed = emb("🏆 أغنى أعضاء يونان فاملي", "المطنوخين العشرة الأوائل! 👑", C_GOLD, image_key="top")
     medals = ["🥇","🥈","🥉","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟"]
-    for i, (member, total, lvl) in enumerate(users_data[:10]):
-        rank_emoji = "👑" if i==0 else "💎" if i==1 else "🥉" if i==2 else "🌟"
+    for i, (uid, data) in enumerate(sorted_users):
+        try:
+            user = await bot.fetch_user(int(uid))
+            name = user.display_name
+        except:
+            name = f"مستخدم {uid[:6]}"
+        total = data.get("balance", 0) + data.get("bank", 0)
         embed.add_field(
-            name=f"{medals[i] if i<3 else f'#{i+1}'} {rank_emoji} {member.display_name}",
-            value=f"💰 ${format_money(total)} | ⚡ Lvl {lvl} | {get_rank(lvl)}",
-            inline=False,
+            name=f"{medals[i]} {name}",
+            value=f"${format_money(total)} | مستوى {data.get('level',1)}",
+            inline=False
         )
     await ctx.send(embed=embed)
 
 
-# ─── سوق ────────────────────────────────────────────────────────
 @bot.command(name="سوق")
 async def market_cmd(ctx):
-    embed = emb("📊 سوق YF — الأسعار الحية", "تتغير كل 30 دقيقة | عائلة يونان للتداول 💹", C_GOLD, image_key="market")
+    embed = emb("📊 سوق يونان فاملي الحي", "الأسعار تتغير كل 30 دقيقة! 📈", C_CYAN, image_key="market")
     for key, item in bot.market.items():
-        original = MARKET[key]["buy"]
-        change   = ((item["buy"] - original) / original) * 100
-        emoji    = "🟢📈" if change >= 0 else "🔴📉"
         embed.add_field(
             name=f"{item['icon']} {item['name']}",
-            value=f"{emoji} شراء: `${format_money(item['buy'])}`\nبيع: `${format_money(item['sell'])}`\nتغير: `{change:+.2f}%`",
+            value=f"شراء: **${item['buy']:,}**\nبيع: **${item['sell']:,}**\n`-شراء {key} 1`",
             inline=True,
         )
-    embed.add_field(name="💡 كيف تشتري/تبيع؟", value="`-شراء bitcoin 1` أو `-بيع gold 2`", inline=False)
     await ctx.send(embed=embed)
 
 
-# ─── شراء ───────────────────────────────────────────────────────
 @bot.command(name="شراء")
 async def buy_cmd(ctx, item_key: str, amount: int = 1):
     if item_key not in bot.market:
-        await ctx.send(f"❌ ما في سلعة اسمها `{item_key}`! استخدم `-سوق` لتشوف القائمة.")
+        await ctx.send(f"❌ ما في سلعة اسمها `{item_key}`! استخدم `-سوق` للقائمة.")
         return
-    data = get_user(bot.db, str(ctx.author.id))
-    item = bot.market[item_key]
+    data      = get_user(bot.db, str(ctx.author.id))
+    item      = bot.market[item_key]
     total_cost = item["buy"] * amount
     if data["balance"] < total_cost:
-          if data["balance"] < total_cost:
-        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", f"تكلفة: ${total_cost:,}\n{get_funny('broke')}", C_RED))
-                    return
+        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
     data["balance"] -= total_cost
     data["inventory"][item_key] = data["inventory"].get(item_key, 0) + amount
     save_db(bot.db)
     await ctx.send(embed=emb("✅ تم الشراء!", f"اشتريت **{amount}x {item['name']}** بـ **${total_cost:,}**\nرصيدك: ${data['balance']:,}", C_GREEN))
 
 
-# ─── بيع ────────────────────────────────────────────────────────
 @bot.command(name="بيع")
 async def sell_cmd(ctx, item_key: str, amount: int = 1):
     if item_key not in bot.market:
@@ -419,14 +451,63 @@ async def sell_cmd(ctx, item_key: str, amount: int = 1):
     item       = bot.market[item_key]
     total_earn = item["sell"] * amount
     data["inventory"][item_key] -= amount
-    data["balance"]     += total_earn
+    data["balance"]      += total_earn
     data["total_earned"] += total_earn
     save_db(bot.db)
     await ctx.send(embed=emb("✅ تم البيع!", f"بعت **{amount}x {item['name']}** بـ **${total_earn:,}**\nرصيدك: ${data['balance']:,}", C_GREEN))
 
 
-# ─── ألعاب ──────────────────────────────────────────────────────
-@bot.command(name="ألعاب")
+@bot.command(name="إيداع")
+async def deposit_cmd(ctx, amount: int):
+    data = get_user(bot.db, str(ctx.author.id))
+    if amount < 100:
+        await ctx.send("❌ الحد الأدنى $100!"); return
+    if data["balance"] < amount:
+        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
+    data["balance"] -= amount
+    data["bank"]    += amount
+    save_db(bot.db)
+    embed = emb("🏛️ إيداع ناجح!", f"تم إيداع **${amount:,}** في البنك ✅", C_GREEN, image_key="bank")
+    embed.add_field(name="🪙 اليد", value=f"${data['balance']:,}", inline=True)
+    embed.add_field(name="🏛️ البنك",value=f"${data['bank']:,}",    inline=True)
+    await ctx.send(embed=embed)
+
+
+@bot.command(name="سحب")
+async def withdraw_cmd(ctx, amount: int):
+    data = get_user(bot.db, str(ctx.author.id))
+    if amount < 100:
+        await ctx.send("❌ الحد الأدنى $100!"); return
+    if data["bank"] < amount:
+        await ctx.send(embed=emb("❌ فلوسك في البنك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
+    data["bank"]    -= amount
+    data["balance"] += amount
+    save_db(bot.db)
+    embed = emb("🏛️ سحب ناجح!", f"تم سحب **${amount:,}** من البنك ✅", C_GREEN, image_key="bank")
+    embed.add_field(name="🪙 اليد", value=f"${data['balance']:,}", inline=True)
+    embed.add_field(name="🏛️ البنك",value=f"${data['bank']:,}",    inline=True)
+    await ctx.send(embed=embed)
+
+
+@bot.command(name="تحويل")
+async def transfer_cmd(ctx, user: discord.User, amount: int):
+    if user.id == ctx.author.id:
+        await ctx.send(embed=emb("🤣 يا حبيبي!", get_funny("transfer_self"), C_RED, image_key="transfer")); return
+    if amount < 100:
+        await ctx.send("❌ الحد الأدنى $100!"); return
+    data   = get_user(bot.db, str(ctx.author.id))
+    target = get_user(bot.db, str(user.id))
+    if data["balance"] < amount:
+        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
+    data["balance"]        -= amount
+    target["balance"]      += amount
+    data["gifts_sent"]     += 1
+    target["gifts_received"] += 1
+    save_db(bot.db)
+    embed = emb("💸 تحويل يوناني ناجح!", f"{ctx.author.mention} → {user.mention}\nالمبلغ: **${amount:,}** 💰", C_GREEN, image_key="transfer")
+    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+    await ctx.send(embed=embed)
+    @bot.command(name="ألعاب")
 async def games_cmd(ctx):
     embed = emb("🎮 ألعاب يونان فاملي", "💎 جاكبوت! +$50,000 ✨\nاختر لعبتك يا بطل!", C_GOLD, image_key="games")
     for key, game in GAMES.items():
@@ -439,7 +520,6 @@ async def games_cmd(ctx):
     await ctx.send(embed=embed)
 
 
-# ─── سلات ───────────────────────────────────────────────────────
 @bot.command(name="سلات")
 async def slots_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -466,7 +546,7 @@ async def slots_cmd(ctx, bet: int):
 
     winnings = bet * mult
     if mult > 0:
-        data["balance"]     += winnings - bet
+        data["balance"]      += winnings - bet
         data["total_earned"] += winnings - bet
         data["wins"]         += 1
         if mult >= 50:
@@ -487,15 +567,14 @@ async def slots_cmd(ctx, bet: int):
 
     embed = emb(title, color=color, image_key=img_key)
     embed.add_field(name="🎰 النتيجة", value=f"| {result[0]} | {result[1]} | {result[2]} |", inline=False)
-    embed.add_field(name="💵 الرهان",  value=f"${bet:,}",      inline=True)
-    embed.add_field(name="📈 مضاعف",   value=f"x{mult}",        inline=True)
-    embed.add_field(name="💰 الأرباح", value=f"${winnings:,}", inline=True)
+    embed.add_field(name="💵 الرهان",  value=f"${bet:,}",       inline=True)
+    embed.add_field(name="📈 مضاعف",   value=f"x{mult}",         inline=True)
+    embed.add_field(name="💰 الأرباح", value=f"${winnings:,}",  inline=True)
     embed.add_field(name="🪙 رصيدك",  value=f"${data['balance']:,}", inline=False)
     add_ach_field(embed, new_ach)
     await msg.edit(content=None, embed=embed)
 
 
-# ─── عجلة ───────────────────────────────────────────────────────
 @bot.command(name="عجلة")
 async def wheel_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -528,7 +607,7 @@ async def wheel_cmd(ctx, bet: int):
     winnings = int(bet * mult)
 
     if mult > 1:
-        data["balance"]     += winnings - bet
+        data["balance"]      += winnings - bet
         data["total_earned"] += winnings - bet
         data["wins"] += 1
         text = f"🎉 ربحت **${winnings:,}**!"
@@ -561,7 +640,6 @@ async def wheel_cmd(ctx, bet: int):
     await msg.edit(content=None, embed=embed)
 
 
-# ─── نرد ────────────────────────────────────────────────────────
 @bot.command(name="نرد")
 async def dice_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -577,7 +655,7 @@ async def dice_cmd(ctx, bet: int):
     bot_roll    = random.randint(1, 6)
 
     if player_roll > bot_roll:
-        data["balance"]     += bet
+        data["balance"]      += bet
         data["total_earned"] += bet
         data["wins"] += 1
         color = C_GREEN
@@ -603,13 +681,12 @@ async def dice_cmd(ctx, bet: int):
     embed = emb(f"🎲 نرد — {result_text}", color=color, image_key="dice")
     embed.add_field(name="🎲 أنت",   value=f"**{player_roll}**", inline=True)
     embed.add_field(name="🤖 البوت", value=f"**{bot_roll}**",    inline=True)
-    embed.add_field(name="💵 الرهان",value=f"${bet:,}",          inline=True)
+    embed.add_field(name="💵 الرهان",value=f"${bet:,}",           inline=True)
     embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}", inline=False)
     add_ach_field(embed, new_ach)
     await msg.edit(content=None, embed=embed)
 
 
-# ─── قمار ───────────────────────────────────────────────────────
 @bot.command(name="قمار")
 async def gamble_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -620,7 +697,7 @@ async def gamble_cmd(ctx, bet: int):
 
     win = random.random() < 0.5
     if win:
-        data["balance"]     += bet
+        data["balance"]      += bet
         data["total_earned"] += bet
         data["wins"] += 1
         embed = emb("🃏 قمار — فزت!", f"🎉 ربحت **${bet*2:,}**!", C_GREEN, image_key="gamble")
@@ -641,7 +718,6 @@ async def gamble_cmd(ctx, bet: int):
     await ctx.send(embed=embed)
 
 
-# ─── حظ ─────────────────────────────────────────────────────────
 @bot.command(name="حظ")
 async def luck_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -655,7 +731,7 @@ async def luck_cmd(ctx, bet: int):
     winnings = int(bet * mult)
 
     if mult > 1:
-        data["balance"]     += winnings - bet
+        data["balance"]      += winnings - bet
         data["total_earned"] += winnings - bet
         data["wins"] += 1
         color = C_GREEN
@@ -679,15 +755,12 @@ async def luck_cmd(ctx, bet: int):
     save_db(bot.db)
 
     embed = emb(title, text, color, image_key="luck")
-    embed.add_field(name="💵 الرهان",  value=f"${bet:,}",         inline=True)
-    embed.add_field(name="📈 مضاعف",   value=f"x{mult}",           inline=True)
+    embed.add_field(name="💵 الرهان",  value=f"${bet:,}",            inline=True)
+    embed.add_field(name="📈 مضاعف",   value=f"x{mult}",              inline=True)
     embed.add_field(name="🪙 رصيدك",  value=f"${data['balance']:,}", inline=True)
     add_ach_field(embed, new_ach)
     await ctx.send(embed=embed)
-
-
-# ─── دجاجة ──────────────────────────────────────────────────────
-@bot.command(name="دجاجة")
+    @bot.command(name="دجاجة")
 async def chicken_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
     if bet < 50 or bet > 2000:
@@ -709,11 +782,10 @@ async def chicken_cmd(ctx, bet: int):
             await i.response.send_message("❌ مو لعبتك!", ephemeral=True); return
         if stopped[0]: return
         nonlocal multiplier
-
         if random.random() < 0.35:
             stopped[0] = True
-            data["total_lost"] += bet
-            data["losses"]     += 1
+            data["total_lost"]    += bet
+            data["losses"]        += 1
             data["games_played"]  += 1
             data["total_gambled"] += bet
             save_db(bot.db)
@@ -731,9 +803,9 @@ async def chicken_cmd(ctx, bet: int):
         if stopped[0]: return
         stopped[0] = True
         winnings = int(bet * multiplier)
-        data["balance"]     += winnings
-        data["total_earned"] += winnings - bet
-        data["wins"]         += 1
+        data["balance"]       += winnings
+        data["total_earned"]  += winnings - bet
+        data["wins"]          += 1
         data["games_played"]  += 1
         data["total_gambled"] += bet
         new_ach = check_achievements(data)
@@ -750,7 +822,6 @@ async def chicken_cmd(ctx, bet: int):
     await ctx.send(embed=embed, view=view)
 
 
-# ─── ألوان ──────────────────────────────────────────────────────
 @bot.command(name="ألوان")
 async def colors_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -760,8 +831,8 @@ async def colors_cmd(ctx, bet: int):
         await ctx.send(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
 
     colors_list = [("🔴 أحمر", "red"), ("🔵 أزرق", "blue"), ("🟢 أخضر", "green"), ("🟡 أصفر", "yellow")]
-    embed = emb("🎨 لعبة الألوان", f"رهانك: **${bet:,}**\nخمّن اللون الصحيح واربح x2!", C_PURPLE, image_key="colors")
-    view = discord.ui.View()
+    embed  = emb("🎨 لعبة الألوان", f"رهانك: **${bet:,}**\nخمّن اللون الصحيح واربح x2!", C_PURPLE, image_key="colors")
+    view   = discord.ui.View()
     chosen = [None]
 
     for label, value in colors_list:
@@ -775,7 +846,7 @@ async def colors_cmd(ctx, bet: int):
                 winning_color = random.choice([c[1] for c in colors_list])
                 winning_label = next(l for l, val in colors_list if val == winning_color)
                 if v == winning_color:
-                    data["balance"]     += bet
+                    data["balance"]      += bet
                     data["total_earned"] += bet
                     data["wins"] += 1
                     color = C_GREEN
@@ -797,13 +868,11 @@ async def colors_cmd(ctx, bet: int):
                 add_ach_field(e, new_ach)
                 await i.response.edit_message(embed=e, view=None)
             return cb
-                btn.callback = make_cb(value, label)
+        btn.callback = make_cb(value, label)
         view.add_item(btn)
-
     await ctx.send(embed=embed, view=view)
 
 
-# ─── فواكه ──────────────────────────────────────────────────────
 @bot.command(name="فواكه")
 async def fruits_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -821,15 +890,15 @@ async def fruits_cmd(ctx, bet: int):
     if matches == 3:
         mult, title = 10, "🍎 ثلاثي مثالي!"
     elif matches == 2:
-        mult, title = 5, "🍎 مزدوج ممتاز!"
+        mult, title = 5,  "🍎 مزدوج ممتاز!"
     elif matches == 1:
-        mult, title = 2, "🍎 مطابقة واحدة!"
+        mult, title = 2,  "🍎 مطابقة واحدة!"
     else:
-        mult, title = 0, "🍎 ما في مطابقة!"
+        mult, title = 0,  "🍎 ما في مطابقة!"
 
     winnings = bet * mult
     if mult > 0:
-        data["balance"]     += winnings - bet
+        data["balance"]      += winnings - bet
         data["total_earned"] += winnings - bet
         data["wins"] += 1
         color = C_GREEN
@@ -848,14 +917,13 @@ async def fruits_cmd(ctx, bet: int):
     embed.add_field(name="🎰 الصف 1", value=" | ".join(row1), inline=False)
     embed.add_field(name="🎰 الصف 2", value=" | ".join(row2), inline=False)
     embed.add_field(name="🎰 الصف 3", value=" | ".join(row3), inline=False)
-    embed.add_field(name="📈 مضاعف",  value=f"x{mult}",         inline=True)
+    embed.add_field(name="📈 مضاعف",  value=f"x{mult}",        inline=True)
     embed.add_field(name="💰 الأرباح",value=f"${winnings:,}",  inline=True)
     embed.add_field(name="🪙 رصيدك",  value=f"${data['balance']:,}", inline=True)
     add_ach_field(embed, new_ach)
     await ctx.send(embed=embed)
 
 
-# ─── صناديق ─────────────────────────────────────────────────────
 @bot.command(name="صناديق")
 async def boxes_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -872,8 +940,8 @@ async def boxes_cmd(ctx, bet: int):
         ("💎 ممتاز",  5,     6),
         ("👑 جاكبوت", 10,    2),
     ]
-    embed = emb("📦 اختر صندوق!", f"رهانك: **${bet:,}**\nاختر صندوقاً من الأربعة!", C_BLUE, image_key="boxes")
-    view = discord.ui.View()
+    embed  = emb("📦 اختر صندوق!", f"رهانك: **${bet:,}**\nاختر صندوقاً من الأربعة!", C_BLUE, image_key="boxes")
+    view   = discord.ui.View()
     opened = [False]
 
     for idx in range(4):
@@ -887,7 +955,7 @@ async def boxes_cmd(ctx, bet: int):
                 prize_label, mult, _ = random.choices(prizes, weights=[p[2] for p in prizes])[0]
                 winnings = int(bet * mult)
                 if mult > 1:
-                    data["balance"]     += winnings - bet
+                    data["balance"]      += winnings - bet
                     data["total_earned"] += winnings - bet
                     data["wins"] += 1
                     color = C_GREEN
@@ -914,11 +982,9 @@ async def boxes_cmd(ctx, bet: int):
             return cb
         btn.callback = make_cb()
         view.add_item(btn)
-
     await ctx.send(embed=embed, view=view)
 
 
-# ─── بلاك جاك ───────────────────────────────────────────────────
 @bot.command(name="بلاكجاك")
 async def blackjack_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -947,9 +1013,9 @@ async def blackjack_cmd(ctx, bet: int):
         e.add_field(name="الديلر",value=f"{dealer[0][0]}{dealer[0][1]} ❓", inline=False)
         return e
 
-    view     = discord.ui.View()
-    hit_btn  = discord.ui.Button(label="🃏 Hit",   style=discord.ButtonStyle.primary)
-    stand_btn= discord.ui.Button(label="🛑 Stand", style=discord.ButtonStyle.danger)
+    view      = discord.ui.View()
+    hit_btn   = discord.ui.Button(label="🃏 Hit",   style=discord.ButtonStyle.primary)
+    stand_btn = discord.ui.Button(label="🛑 Stand", style=discord.ButtonStyle.danger)
 
     async def hit_cb(i: discord.Interaction):
         if i.user.id != ctx.author.id:
@@ -957,9 +1023,9 @@ async def blackjack_cmd(ctx, bet: int):
         player.append(draw())
         pv = hand_value(player)
         if pv > 21:
-            data["balance"]    -= bet
-            data["total_lost"] += bet
-            data["losses"]     += 1
+            data["balance"]       -= bet
+            data["total_lost"]    += bet
+            data["losses"]        += 1
             data["games_played"]  += 1
             data["total_gambled"] += bet
             save_db(bot.db)
@@ -976,7 +1042,7 @@ async def blackjack_cmd(ctx, bet: int):
             dealer.append(draw())
         dv, pv = hand_value(dealer), hand_value(player)
         if dv > 21 or pv > dv:
-            data["balance"]     += bet
+            data["balance"]      += bet
             data["total_earned"] += bet
             data["wins"] += 1
             text, color = f"🎉 فزت بـ **${bet*2:,}**!", C_GREEN
@@ -998,14 +1064,13 @@ async def blackjack_cmd(ctx, bet: int):
         add_ach_field(e, new_ach)
         await i.response.edit_message(embed=e, view=None)
 
-    hit_btn.callback  = hit_cb
-    stand_btn.callback= stand_cb
+    hit_btn.callback   = hit_cb
+    stand_btn.callback = stand_cb
     view.add_item(hit_btn)
     view.add_item(stand_btn)
     await ctx.send(embed=render_embed(), view=view)
 
 
-# ─── تكس ────────────────────────────────────────────────────────
 @bot.command(name="تكس")
 async def crash_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
@@ -1030,9 +1095,9 @@ async def crash_cmd(ctx, bet: int):
         if cashed_out[0]: return
         cashed_out[0] = True
         winnings = int(bet * multiplier)
-        data["balance"]     += winnings - bet
-        data["total_earned"] += winnings - bet
-        data["wins"]         += 1
+        data["balance"]       += winnings - bet
+        data["total_earned"]  += winnings - bet
+        data["wins"]          += 1
         data["games_played"]  += 1
         data["total_gambled"] += bet
         new_ach = check_achievements(data)
@@ -1054,9 +1119,9 @@ async def crash_cmd(ctx, bet: int):
         if multiplier >= crash_point:
             if not cashed_out[0]:
                 cashed_out[0] = True
-                data["balance"]    -= bet
-                data["total_lost"] += bet
-                data["losses"]     += 1
+                data["balance"]       -= bet
+                data["total_lost"]    += bet
+                data["losses"]        += 1
                 data["games_played"]  += 1
                 data["total_gambled"] += bet
                 save_db(bot.db)
@@ -1070,19 +1135,16 @@ async def crash_cmd(ctx, bet: int):
     if not cashed_out[0]:
         cashed_out[0] = True
         winnings = int(bet * multiplier)
-        data["balance"]     += winnings - bet
-        data["total_earned"] += winnings - bet
-        data["wins"]         += 1
+        data["balance"]       += winnings - bet
+        data["total_earned"]  += winnings - bet
+        data["wins"]          += 1
         data["games_played"]  += 1
         data["total_gambled"] += bet
         save_db(bot.db)
         e = emb(f"🎉 وصلت للحد الأقصى! x{multiplier:.2f}", f"ربحت **${winnings:,}**", C_GREEN, image_key="crash")
         e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
         await msg.edit(embed=e, view=None)
-
-
-# ─── نهب ────────────────────────────────────────────────────────
-@bot.command(name="نهب")
+        @bot.command(name="نهب")
 async def rob_cmd(ctx, user: discord.User):
     if user.id == ctx.author.id:
         await ctx.send(embed=emb("🤡 يا حبيبي!", get_funny("rob_self"), C_RED, image_key="rob_fail")); return
@@ -1093,7 +1155,6 @@ async def rob_cmd(ctx, user: discord.User):
     if victim["balance"] < 500:
         await ctx.send(embed=emb("😂 فقير زيك!", get_funny("rob_poor"), C_RED, image_key="rob_fail")); return
 
-    # تحقق من حماية الضحية (مو المهاجم)
     if victim.get("protection") and victim.get("protection_expires"):
         if datetime.fromisoformat(victim["protection_expires"]) > datetime.now():
             await ctx.send(embed=emb("🛡️ محمي!", "الضحية عندها حماية يونان فاملي! ما تقدر تلمسها!", C_BLUE, image_key="protection"))
@@ -1130,7 +1191,6 @@ async def rob_cmd(ctx, user: discord.User):
     await ctx.send(embed=embed)
 
 
-# ─── حماية ──────────────────────────────────────────────────────
 @bot.command(name="حماية")
 async def protection_cmd(ctx, hours: int = 24):
     if hours < 1 or hours > 168:
@@ -1146,12 +1206,11 @@ async def protection_cmd(ctx, hours: int = 24):
     save_db(bot.db)
 
     embed = emb("🛡️ حماية يونان فاملي!", f"{get_funny('protection_active')}\n\nتم تفعيل الحماية لمدة **{hours} ساعة** مقابل **${cost:,}**", C_BLUE, image_key="protection")
-    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}",  inline=True)
+    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}", inline=True)
     embed.add_field(name="⏰ تنتهي",  value=f"<t:{int((datetime.now()+timedelta(hours=hours)).timestamp())}:R>", inline=True)
     await ctx.send(embed=embed)
 
 
-# ─── زواج ───────────────────────────────────────────────────────
 @bot.command(name="زواج")
 async def marry_cmd(ctx, user: discord.User):
     if user.id == ctx.author.id:
@@ -1167,7 +1226,7 @@ async def marry_cmd(ctx, user: discord.User):
     if partner["married_to"]:
         await ctx.send(embed=emb("💔 للأسف!", get_funny("partner_married"), C_RED, image_key="marry")); return
 
-    embed = emb("💍 عرض زواج يوناني!", f"{ctx.author.mention} يعرض الزواج على {user.mention}!\nالمهر: **$5,000** 💎", C_PINK, image_key="marry")
+    embed  = emb("💍 عرض زواج يوناني!", f"{ctx.author.mention} يعرض الزواج على {user.mention}!\nالمهر: **$5,000** 💎", C_PINK, image_key="marry")
     view   = discord.ui.View()
     yes_btn= discord.ui.Button(label="💍 نعم!", style=discord.ButtonStyle.success)
     no_btn = discord.ui.Button(label="❌ لا",   style=discord.ButtonStyle.danger)
@@ -1202,7 +1261,6 @@ async def marry_cmd(ctx, user: discord.User):
     await ctx.send(embed=embed, view=view)
 
 
-# ─── طلاق ───────────────────────────────────────────────────────
 @bot.command(name="طلاق")
 async def divorce_cmd(ctx):
     data = get_user(bot.db, str(ctx.author.id))
@@ -1216,7 +1274,7 @@ async def divorce_cmd(ctx):
     partner_id = data["married_to"]
     partner    = get_user(bot.db, partner_id)
 
-    embed = emb("💔 طلاق يوناني", f"متأكد تبي تطلق؟\nراح تخسر نصف مهرك (${data['dowry']//2:,}) 💸", C_RED, image_key="divorce")
+    embed  = emb("💔 طلاق يوناني", f"متأكد تبي تطلق؟\nراح تخسر نصف مهرك (${data['dowry']//2:,}) 💸", C_RED, image_key="divorce")
     view   = discord.ui.View()
     yes_btn= discord.ui.Button(label="💔 نعم، طلق", style=discord.ButtonStyle.danger)
     no_btn = discord.ui.Button(label="❌ إلغاء",     style=discord.ButtonStyle.secondary)
@@ -1225,12 +1283,12 @@ async def divorce_cmd(ctx):
         if i.user.id != ctx.author.id:
             await i.response.send_message("❌ مو لك!", ephemeral=True); return
         loss = data["dowry"] // 2
-        data["balance"]      -= max(0, loss)
-        partner["balance"]   += loss
+        data["balance"]       -= max(0, loss)
+        partner["balance"]    += loss
         data["divorce_count"] += 1
-        data["last_divorce"]  = datetime.now().isoformat()
-        data["married_to"]    = partner["married_to"]  = None
-        data["married_since"] = partner["married_since"]= None
+        data["last_divorce"]   = datetime.now().isoformat()
+        data["married_to"]     = partner["married_to"]   = None
+        data["married_since"]  = partner["married_since"] = None
         save_db(bot.db)
         e = emb("💔 تم الطلاق!", f"{ctx.author.mention} طلّق!\nخسر **${loss:,}** 💸", C_RED, image_key="divorce")
         await i.response.edit_message(embed=e, view=None)
@@ -1247,7 +1305,6 @@ async def divorce_cmd(ctx):
     await ctx.send(embed=embed, view=view)
 
 
-# ─── ممتلكات ────────────────────────────────────────────────────
 @bot.command(name="ممتلكات")
 async def properties_cmd(ctx):
     data  = get_user(bot.db, str(ctx.author.id))
@@ -1261,7 +1318,9 @@ async def properties_cmd(ctx):
         )
 
     view = discord.ui.View()
-    for key, prop in list(PROPERTIES.items())[:5]:  # Discord يقبل 5 أزرار كحد أقصى في صف
+    # تصحيح: عرض كل الممتلكات (Discord يقبل 5 أزرار فقط في صف، نأخذ الـ 5 الأرخص)
+    affordable = sorted(PROPERTIES.items(), key=lambda x: x[1]["price"])[:5]
+    for key, prop in affordable:
         btn = discord.ui.Button(label=f"شراء {prop['name']}", emoji=prop["icon"], style=discord.ButtonStyle.primary)
 
         async def make_cb(k, p):
@@ -1271,8 +1330,8 @@ async def properties_cmd(ctx):
                 d = get_user(bot.db, str(i.user.id))
                 if d["balance"] < p["price"]:
                     await i.response.send_message(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED), ephemeral=True); return
-                d["balance"]      -= p["price"]
-                d["properties"][k] = d["properties"].get(k, 0) + 1
+                d["balance"]       -= p["price"]
+                d["properties"][k]  = d["properties"].get(k, 0) + 1
                 new_ach = check_achievements(d)
                 save_db(bot.db)
                 e = emb(f"✅ اشتريت {p['name']}!", f"{get_funny('buy_property')}\n\nرصيدك: ${d['balance']:,}", C_GREEN, image_key="properties")
@@ -1283,73 +1342,11 @@ async def properties_cmd(ctx):
         btn.callback = make_cb(key, prop)
         view.add_item(btn)
     await ctx.send(embed=embed, view=view)
-
-
-# ─── تحويل ──────────────────────────────────────────────────────
-@bot.command(name="تحويل")
-async def transfer_cmd(ctx, user: discord.User, amount: int):
-    if user.id == ctx.author.id:
-        await ctx.send(embed=emb("🤣 يا حبيبي!", get_funny("transfer_self"), C_RED, image_key="transfer")); return
-    if amount < 100:
-        await ctx.send("❌ الحد الأدنى $100!"); return
-
-    data   = get_user(bot.db, str(ctx.author.id))
-    target = get_user(bot.db, str(user.id))
-
-    if data["balance"] < amount:
-        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
-
-    data["balance"]       -= amount
-    target["balance"]     += amount
-    data["gifts_sent"]    += 1
-    target["gifts_received"] += 1
-    save_db(bot.db)
-
-    embed = emb("💸 تحويل يوناني ناجح!", f"{ctx.author.mention} → {user.mention}\nالمبلغ: **${amount:,}** 💰", C_GREEN, image_key="transfer")
-    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
-    await ctx.send(embed=embed)
-
-
-# ─── إيداع ──────────────────────────────────────────────────────
-@bot.command(name="إيداع")
-async def deposit_cmd(ctx, amount: int):
-    data = get_user(bot.db, str(ctx.author.id))
-    if amount < 100:
-        await ctx.send("❌ الحد الأدنى $100!"); return
-    if data["balance"] < amount:
-        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
-    data["balance"] -= amount
-    data["bank"]    += amount
-    save_db(bot.db)
-    embed = emb("🏛️ إيداع ناجح!", f"تم إيداع **${amount:,}** في البنك ✅", C_GREEN, image_key="bank")
-    embed.add_field(name="🪙 اليد", value=f"${data['balance']:,}", inline=True)
-    embed.add_field(name="🏛️ البنك",value=f"${data['bank']:,}",    inline=True)
-    await ctx.send(embed=embed)
-
-
-# ─── سحب ────────────────────────────────────────────────────────
-@bot.command(name="سحب")
-async def withdraw_cmd(ctx, amount: int):
-    data = get_user(bot.db, str(ctx.author.id))
-    if amount < 100:
-        await ctx.send("❌ الحد الأدنى $100!"); return
-    if data["bank"] < amount:
-        await ctx.send(embed=emb("❌ فلوسك في البنك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
-    data["bank"]    -= amount
-    data["balance"] += amount
-    save_db(bot.db)
-    embed = emb("🏛️ سحب ناجح!", f"تم سحب **${amount:,}** من البنك ✅", C_GREEN, image_key="bank")
-    embed.add_field(name="🪙 اليد", value=f"${data['balance']:,}", inline=True)
-    embed.add_field(name="🏛️ البنك",value=f"${data['bank']:,}",    inline=True)
-    await ctx.send(embed=embed)
-
-
-# ─── مستوى ──────────────────────────────────────────────────────
-@bot.command(name="مستوى")
+    @bot.command(name="مستوى")
 async def level_cmd(ctx, user: Optional[discord.User] = None):
-    target    = user or ctx.author
-    data      = get_user(bot.db, str(target.id))
-    xp_needed = data["level"] * 1000
+    target     = user or ctx.author
+    data       = get_user(bot.db, str(target.id))
+    xp_needed  = data["level"] * 1000
     xp_progress= data["xp"] % xp_needed if xp_needed else 0
     embed = emb(f"⚡ مستوى — {target.display_name}", f"**{get_rank(data['level'])}** | مستوى {data['level']}", C_PURPLE, image_key="level_up")
     bar   = progress_bar(xp_progress, xp_needed, 20)
@@ -1361,7 +1358,6 @@ async def level_cmd(ctx, user: Optional[discord.User] = None):
     await ctx.send(embed=embed)
 
 
-# ─── مساعدة ─────────────────────────────────────────────────────
 @bot.command(name="مساعدة")
 async def help_cmd(ctx):
     embed = emb("📖 دليل YF BANK — عائلة يونان", "أقوى بوت اقتصادي في ديسكورد! 💎", C_GOLD, image_key="help")
@@ -1400,22 +1396,18 @@ async def help_cmd(ctx):
     await ctx.send(embed=embed)
 
 
-# ─── ابدأ ────────────────────────────────────────────────────────
 @bot.command(name="ابدأ")
 async def start_cmd(ctx):
     embed = emb("🏦 YF BANK — قائمة الأوامر", "عائلة يونان ترحب بك! 👑", C_GOLD, image_key="commands")
-    embed.add_field(name="🎮 الألعاب",       value="سلات، عجلة، نرد، دجاجة، فواكه، ألوان، صناديق، قمار، بلاكجاك، تكس، حظ", inline=False)
-    embed.add_field(name="💰 المال",         value="رصيد، يومي، إيداع، سحب، تحويل", inline=False)
-    embed.add_field(name="📊 التداول",       value="سوق، شراء، بيع، ممتلكات",       inline=False)
-    embed.add_field(name="👤 الحسابات",      value="رصيد، مطنوخين، مستوى",           inline=False)
-    embed.add_field(name="🔒 الأمان",        value="نهب، حماية",                     inline=False)
-    embed.add_field(name="💍 الاجتماعية",    value="زواج، طلاق",                     inline=False)
+    embed.add_field(name="🎮 الألعاب",    value="سلات، عجلة، نرد، دجاجة، فواكه، ألوان، صناديق، قمار، بلاكجاك، تكس، حظ", inline=False)
+    embed.add_field(name="💰 المال",      value="رصيد، يومي، إيداع، سحب، تحويل", inline=False)
+    embed.add_field(name="📊 التداول",    value="سوق، شراء، بيع، ممتلكات",       inline=False)
+    embed.add_field(name="👤 الحسابات",   value="رصيد، مطنوخين، مستوى",           inline=False)
+    embed.add_field(name="🔒 الأمان",     value="نهب، حماية",                     inline=False)
+    embed.add_field(name="💍 الاجتماعية", value="زواج، طلاق",                     inline=False)
     await ctx.send(embed=embed)
 
 
-# ═══════════════════════════════════════════════════════════════════
-# أحداث البوت
-# ═══════════════════════════════════════════════════════════════════
 @bot.event
 async def on_ready():
     print(f"✅ YF BANK Online! {bot.user.name} ({bot.user.id})")
@@ -1431,15 +1423,12 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         await ctx.send(embed=emb("❓ أمر غير معروف!", "استخدم `-مساعدة` لعرض قائمة الأوامر\nأو `-ابدأ` للبدء 🎮", C_RED, image_key="help"))
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(embed=emb("⚠️ ناقص معلومات!", "استخدم الأمر بشكل صحيح\naكتب `-مساعدة` للمساعدة", C_ORANGE, image_key="help"))
+        await ctx.send(embed=emb("⚠️ ناقص معلومات!", "استخدم الأمر بشكل صحيح\nاكتب `-مساعدة` للمساعدة", C_ORANGE, image_key="help"))
     elif isinstance(error, commands.BadArgument):
         await ctx.send(embed=emb("⚠️ خطأ في المدخلات!", "تأكد من إدخال الأرقام بشكل صحيح", C_ORANGE, image_key="help"))
     else:
         print(f"Error: {error}")
 
-# ═══════════════════════════════════════════════════════════════════
-# تشغيل البوت
-# ═══════════════════════════════════════════════════════════════════
+
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)
-                                                                                          
