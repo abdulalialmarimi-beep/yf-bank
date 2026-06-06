@@ -396,7 +396,8 @@ async def buy_cmd(ctx, item_key: str, amount: int = 1):
     item = bot.market[item_key]
     total_cost = item["buy"] * amount
     if data["balance"] < total_cost:
-        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", f"تكلفة: ${total_cost:,}\n{get_funny('b
+          if data["balance"] < total_cost:
+        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", f"تكلفة: ${total_cost:,}\n{get_funny('broke')}", C_RED))
                     return
     data["balance"] -= total_cost
     data["inventory"][item_key] = data["inventory"].get(item_key, 0) + amount
