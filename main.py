@@ -472,3 +472,9 @@ async def wheel_cmd(interaction: discord.Interaction, bet: int):
         ("5x ✨", 5.0, "✨", C_GOLD),
         ("10x 💎", 10.0, "💎", C_PURPLE),
     ]
+@bot.event
+async def on_ready():
+    print(f"✅ YF BANK Online! {bot.user.name}")
+    await bot.tree.sync()
+
+bot.run(BOT_TOKEN)
