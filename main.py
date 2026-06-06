@@ -313,8 +313,8 @@ def add_ach_field(embed, new_ach):
             name="🏆 إنجاز جديد!",
             value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
             inline=False,
-                             )
-        @bot.command(name="رصيد")
+                             ) 
+@bot.command(name="رصيد")
 async def balance_cmd(ctx, user: Optional[discord.User] = None):
     target = user or ctx.author
     data   = get_user(bot.db, str(target.id))
