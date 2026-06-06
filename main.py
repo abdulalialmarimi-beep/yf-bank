@@ -660,7 +660,7 @@ async def dice_cmd(ctx, bet: int):
         data["wins"] += 1
         color = C_GREEN
         result_text = f"🎉 فزت! {player_roll} > {bot_roll}"
-                                        winnings = int(bet * mult)
+                winnings = int(bet * mult)
                 if mult > 1:
                     data["balance"]      += winnings - bet
                     data["total_earned"] += winnings - bet
