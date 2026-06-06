@@ -660,107 +660,107 @@ async def dice_cmd(ctx, bet: int):
         data["wins"] += 1
         color = C_GREEN
         result_text = f"🎉 فزت! {player_roll} > {bot_roll}"
-        winnings = bet * 2
-    elif player_roll < bot_roll:
-        data["balance"]    -= bet
-        data["total_lost"] += bet
-        data["losses"] += 1
-        color = C_RED
-        result_text = f"😢 خسرت! {player_roll} < {bot_roll}"
-        winnings = 0
-    else:
-        color = C_BLUE
-        result_text = f"🤝 تعادل! {player_roll} = {bot_roll}"
-        winnings = bet
+                                        winnings = int(bet * mult)
+                if mult > 1:
+                    data["balance"]      += winnings - bet
+                    data["total_earned"] += winnings - bet
+                    data["wins"] += 1
+                    color = C_GREEN
+                    text  = f"🎉 وجدت {prize_label}! ربحت **${winnings:,}**"
+                elif mult > 0:
+                    data["balance"]    -= bet - winnings
+                    data["total_lost"] += bet - winnings
+                    color = C_ORANGE
+                    text  = f"{prize_label} استردت **${winnings:,}**"
+                else:
+                    data["balance"]    -= bet
+                    data["total_lost"] += bet
+                    data["losses"] += 1
+                    color = C_RED
+                    text  = f"{prize_label} خسرت **${bet:,}**"
+                data["games_played"]  += 1
+                data["total_gambled"] += bet
+                new_ach = check_achievements(data)
+                save_db(bot.db)
+                e = emb("📦 فتحت الصندوق!", text, color, image_key="boxes")
+                e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+                add_ach_field(e, new_ach)
+                await i.response.edit_message(embed=e, view=None)
+            return cb
+        btn.callback = make_cb()
+        view.add_item(btn)
+    await ctx.send(embed=embed, view=view)
 
-    data["games_played"]  += 1
-    data["total_gambled"] += bet
-    new_ach = check_achievements(data)
-    save_db(bot.db)
 
-    embed = emb(f"🎲 نرد — {result_text}", color=color, image_key="dice")
-    embed.add_field(name="🎲 أنت",   value=f"**{player_roll}**", inline=True)
-    embed.add_field(name="🤖 البوت", value=f"**{bot_roll}**",    inline=True)
-    embed.add_field(name="💵 الرهان",value=f"${bet:,}",           inline=True)
-    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}", inline=False)
-    add_ach_field(embed, new_ach)
-    await msg.edit(content=None, embed=embed)
-
-
-@bot.command(name="قمار")
-async def gamble_cmd(ctx, bet: int):
+@bot.command(name="بلاكجاك")
+async def blackjack_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
-    if bet < 100 or bet > 50000:
-        await ctx.send("❌ الرهان: $100 - $50,000!"); return
+    if bet < 100 or bet > 10000:
+        await ctx.send("❌ الرهان: $100 - $10,000!"); return
     if data["balance"] < bet:
         await ctx.send(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
 
-    win = random.random() < 0.5
-    if win:
-        data["balance"]      += bet
-        data["total_earned"] += bet
-        data["wins"] += 1
-        embed = emb("🃏 قمار — فزت!", f"🎉 ربحت **${bet*2:,}**!", C_GREEN, image_key="gamble")
-    else:
-        data["balance"]    -= bet
-        data["total_lost"] += bet
-        data["losses"] += 1
-        embed = emb("🃏 قمار — خسرت!", f"😢 خسرت **${bet:,}**!", C_RED, image_key="gamble")
+    suits = ["♠️","♥️","♦️","♣️"]
+    vals  = {"A":11,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"10":10,"J":10,"Q":10,"K":10}
 
-    data["games_played"]  += 1
-    data["total_gambled"] += bet
-    new_ach = check_achievements(data)
-    save_db(bot.db)
+    def draw(): return (random.choice(list(vals.keys())), random.choice(suits))
+    def hand_value(hand):
+        v    = sum(vals[c[0]] for c in hand)
+        aces = sum(1 for c in hand if c[0]=="A")
+        while v > 21 and aces:
+            v -= 10; aces -= 1
+        return v
 
-    embed.add_field(name="💵 الرهان", value=f"${bet:,}",            inline=True)
-    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}", inline=True)
-    add_ach_field(embed, new_ach)
-    await ctx.send(embed=embed)
+    player = [draw(), draw()]
+    dealer = [draw(), draw()]
 
+    def render_embed():
+        e = emb("🃏 بلاك جاك", f"رهانك: **${bet:,}**", C_GREEN, image_key="blackjack")
+        e.add_field(name="يدك",   value=f"{' '.join(c[0]+c[1] for c in player)} = **{hand_value(player)}**", inline=False)
+        e.add_field(name="الديلر",value=f"{dealer[0][0]}{dealer[0][1]} ❓", inline=False)
+        return e
 
-@bot.command(name="حظ")
-async def luck_cmd(ctx, bet: int):
-    data = get_user(bot.db, str(ctx.author.id))
-    if bet < 10 or bet > 1000:
-        await ctx.send("❌ الرهان: $10 - $1,000!"); return
-    if data["balance"] < bet:
-        await ctx.send(embed=emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")); return
+    view      = discord.ui.View()
+    hit_btn   = discord.ui.Button(label="🃏 Hit",   style=discord.ButtonStyle.primary)
+    stand_btn = discord.ui.Button(label="🛑 Stand", style=discord.ButtonStyle.danger)
 
-    outcomes = [(0, 30), (0.5, 25), (1, 20), (2, 12), (3, 7), (5, 4), (10, 2)]
-    mult = random.choices([o[0] for o in outcomes], weights=[o[1] for o in outcomes])[0]
-    winnings = int(bet * mult)
+    async def hit_cb(i: discord.Interaction):
+        if i.user.id != ctx.author.id:
+            await i.response.send_message("❌ مو دورك!", ephemeral=True); return
+        player.append(draw())
+        pv = hand_value(player)
+        if pv > 21:
+            data["balance"]       -= bet
+            data["total_lost"]    += bet
+            data["losses"]        += 1
+            data["games_played"]  += 1
+            data["total_gambled"] += bet
+            save_db(bot.db)
+            e = emb("💥 انفجرت!", f"يدك: {' '.join(c[0]+c[1] for c in player)} = **{pv}**\nخسرت **${bet:,}**", C_RED, image_key="blackjack")
+            e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+            await i.response.edit_message(embed=e, view=None)
+        else:
+            await i.response.edit_message(embed=render_embed())
 
-    if mult > 1:
-        data["balance"]      += winnings - bet
-        data["total_earned"] += winnings - bet
-        data["wins"] += 1
-        color = C_GREEN
-        title = f"🍀 حظ سعيد! x{mult}"
-        text  = f"🎉 ربحت **${winnings:,}**!"
-    elif mult == 1:
-        color = C_BLUE
-        title = "🍀 حظ عادي!"
-        text  = f"😊 استردت **${bet:,}**"
-    else:
-        data["balance"]    -= bet - winnings
-        data["total_lost"] += bet - winnings
-        data["losses"] += 1
-        color = C_RED
-        title = "🍀 حظ سيئ!"
-        text  = f"😢 خسرت **${bet - winnings:,}**"
-
-    data["games_played"]  += 1
-    data["total_gambled"] += bet
-    new_ach = check_achievements(data)
-    save_db(bot.db)
-
-    embed = emb(title, text, color, image_key="luck")
-    embed.add_field(name="💵 الرهان",  value=f"${bet:,}",            inline=True)
-    embed.add_field(name="📈 مضاعف",   value=f"x{mult}",              inline=True)
-    embed.add_field(name="🪙 رصيدك",  value=f"${data['balance']:,}", inline=True)
-    add_ach_field(embed, new_ach)
-    await ctx.send(embed=embed)
-@bot.command(name="دجاجة")
+    async def stand_cb(i: discord.Interaction):
+        if i.user.id != ctx.author.id:
+            await i.response.send_message("❌ مو دورك!", ephemeral=True); return
+        while hand_value(dealer) < 17:
+            dealer.append(draw())
+        dv, pv = hand_value(dealer), hand_value(player)
+        if dv > 21 or pv > dv:
+            data["balance"]      += bet
+            data["total_earned"] += bet
+            data["wins"] += 1
+            text, color = f"🎉 فزت بـ **${bet*2:,}**!", C_GREEN
+        elif pv < dv:
+            data["balance"]    -= bet
+            data["total_lost"] += bet
+            data["losses"] += 1
+            text, color = f"😢 الديلر فاز! خسرت **${bet:,}**", C_RED
+        else:
+            text, color = f"🤝 تعادل! استردت **${bet:,}**", C_BLUE
+        @bot.command(name="دجاجة")
 async def chicken_cmd(ctx, bet: int):
     data = get_user(bot.db, str(ctx.author.id))
     if bet < 50 or bet > 2000:
@@ -1318,7 +1318,6 @@ async def properties_cmd(ctx):
         )
 
     view = discord.ui.View()
-    # تصحيح: عرض كل الممتلكات (Discord يقبل 5 أزرار فقط في صف، نأخذ الـ 5 الأرخص)
     affordable = sorted(PROPERTIES.items(), key=lambda x: x[1]["price"])[:5]
     for key, prop in affordable:
         btn = discord.ui.Button(label=f"شراء {prop['name']}", emoji=prop["icon"], style=discord.ButtonStyle.primary)
@@ -1342,7 +1341,9 @@ async def properties_cmd(ctx):
         btn.callback = make_cb(key, prop)
         view.add_item(btn)
     await ctx.send(embed=embed, view=view)
-    @bot.command(name="مستوى")
+
+
+@bot.command(name="مستوى")
 async def level_cmd(ctx, user: Optional[discord.User] = None):
     target     = user or ctx.author
     data       = get_user(bot.db, str(target.id))
