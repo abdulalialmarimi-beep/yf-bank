@@ -1,7 +1,8 @@
 """
 ╔══════════════════════════════════════════════════════════════════╗
 ║  YF BANK - Yonan Family Discord Economy Bot                     ║
-║  أقوى بوت اقتصادي في تاريخ ديسكورد                              ║
+║  أقوى بوت اقتصادي في تاريخ ديسكورد - عائلة يونان               ║
+║  النسخة المطورة - كل الأوامر بالعربية مع صور وفكاهة             ║
 ╚══════════════════════════════════════════════════════════════════╝
 """
 
@@ -15,8 +16,27 @@ import os
 from datetime import datetime, timedelta
 from typing import Optional
 
-BOT_TOKEN = os.getenv("DISCORD_TOKEN", "YOUR_BOT_TOKEN_HERE")
-COMMAND_PREFIX = "yf"
+# ═══════════════════════════════════════════════════════════════════
+# إعدادات البوت
+# ═══════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════
+# إعدادات Replit - استخدم Secrets للتوكن
+# ═══════════════════════════════════════════════════════════════════
+# 1. اضغط على "Tools" → "Secrets" في Replit
+# 2. أضف Secret جديد:
+#    Key: DISCORD_TOKEN
+#    Value: توكن_البوت_الحقيقي
+# ═══════════════════════════════════════════════════════════════════
+
+BOT_TOKEN = os.getenv("DISCORD_TOKEN")
+if not BOT_TOKEN:
+    print("❌ خطأ: ما في توكن!")
+    print("📝 روح لـ Tools → Secrets في Replit")
+    print("🔑 أضف: DISCORD_TOKEN = توكن_البوت")
+    exit(1)
+COMMAND_PREFIX = "-"
+
 C_GOLD = 0xd4a843
 C_GREEN = 0x4ade80
 C_RED = 0xf87171
@@ -24,9 +44,173 @@ C_BLUE = 0x60a5fa
 C_PINK = 0xff69b4
 C_PURPLE = 0x9333ea
 C_ORANGE = 0xf97316
+C_CYAN = 0x22d3ee
+C_DARK = 0x1a1a2e
 
 DB_FILE = "yf_bank_data.json"
 
+# ═══════════════════════════════════════════════════════════════════
+# مسار الصور المحلية - رفعها على Discord/Imgur واستبدل الروابط
+# ═══════════════════════════════════════════════════════════════════
+# ملاحظة: الصور المحلية ما تشتغل في Discord Embed
+# لازم ترفعها على Discord أو Imgur وتحط الروابط المباشرة
+# 
+# كيف ترفع على Discord:
+# 1. ارسل الصورة في أي قناة
+# 2. اضغط يمين → "Copy Link" 
+# 3. استبدل الرابط هنا
+#
+# كيف ترفع على Imgur:
+# 1. روح imgur.com/upload
+# 2. ارفع الصورة
+# 3. خذ الرابط المباشر (ينتهي بـ .png)
+
+IMAGES = {
+    # الصور الرئيسية
+    "logo": "https://cdn.discordapp.com/attachments/.../logo.png",       # ← استبدل
+    "bank": "https://cdn.discordapp.com/attachments/.../bank.png",       # ← استبدل
+
+    # الصور المالية
+    "balance": "https://cdn.discordapp.com/attachments/.../balance.png",   # ← استبدل
+    "daily": "https://cdn.discordapp.com/attachments/.../daily.png",     # ← استبدل
+    "top": "https://cdn.discordapp.com/attachments/.../top.png",         # ← استبدل
+    "broke": "https://cdn.discordapp.com/attachments/.../broke.png",     # ← استبدل
+    "transfer": "https://cdn.discordapp.com/attachments/.../transfer.png", # ← استبدل
+
+    # السوق والتداول
+    "market": "https://cdn.discordapp.com/attachments/.../market.png",   # ← استبدل
+    "properties": "https://cdn.discordapp.com/attachments/.../properties.png", # ← استبدل
+
+    # الألعاب
+    "games": "https://cdn.discordapp.com/attachments/.../games.png",   # ← استبدل
+    "slots": "https://cdn.discordapp.com/attachments/.../slots.png",   # ← استبدل
+    "wheel": "https://cdn.discordapp.com/attachments/.../wheel.png",   # ← استبدل
+    "blackjack": "https://cdn.discordapp.com/attachments/.../blackjack.png", # ← استبدل
+    "crash": "https://cdn.discordapp.com/attachments/.../crash.png",   # ← استبدل
+    "dice": "https://cdn.discordapp.com/attachments/.../dice.png",     # ← استبدل
+    "chicken": "https://cdn.discordapp.com/attachments/.../chicken.png", # ← استبدل
+    "colors": "https://cdn.discordapp.com/attachments/.../colors.png", # ← استبدل
+    "fruits": "https://cdn.discordapp.com/attachments/.../fruits.png", # ← استبدل
+    "boxes": "https://cdn.discordapp.com/attachments/.../boxes.png",   # ← استبدل
+    "gamble": "https://cdn.discordapp.com/attachments/.../gamble.png", # ← استبدل
+    "luck": "https://cdn.discordapp.com/attachments/.../luck.png",     # ← استبدل
+
+    # التفاعل الاجتماعي
+    "marry": "https://cdn.discordapp.com/attachments/.../marry.png",   # ← استبدل
+    "divorce": "https://cdn.discordapp.com/attachments/.../divorce.png", # ← استبدل
+    "marry_bot": "https://cdn.discordapp.com/attachments/.../marry_bot.png", # ← استبدل
+    "marry_self": "https://cdn.discordapp.com/attachments/.../marry_self.png", # ← استبدل
+
+    # النهب والحماية
+    "rob": "https://cdn.discordapp.com/attachments/.../rob.png",     # ← استبدل
+    "rob_fail": "https://cdn.discordapp.com/attachments/.../rob_fail.png", # ← استبدل
+    "protection": "https://cdn.discordapp.com/attachments/.../protection.png", # ← استبدل
+
+    # المساعدة
+    "help": "https://cdn.discordapp.com/attachments/.../help.png",     # ← استبدل
+    "commands": "https://cdn.discordapp.com/attachments/.../commands.png", # ← استبدل
+
+    # الإنجازات
+    "achievement": "https://cdn.discordapp.com/attachments/.../achievement.png", # ← استبدل
+    "jackpot": "https://cdn.discordapp.com/attachments/.../jackpot.png", # ← استبدل
+    "level_up": "https://cdn.discordapp.com/attachments/.../level_up.png", # ← استبدل
+}
+
+# ═══════════════════════════════════════════════════════════════════
+# رسائل فكاهية عائلة يونان
+# ═══════════════════════════════════════════════════════════════════
+
+FUNNY_MESSAGES = {
+    "broke": [
+        "يا اخي حتى الفقر ما يجي فخامة زيك! محفظتك صارت تعيش في خيمة!",
+        "يونان فاملي ما يعرف الفقر! بس انت واضح انك عضو شرفي في نادي الفقراء!",
+        "حتى الريال يونان يبكي لما يشوف رصيدك! روح اشتغل شوي يا بطل!",
+        "رصيدك صفر؟ حتى المهرجين في السيرك عندهم فلوس اكثر منك!",
+        "يا ولد حتى الجثة في القبر عندها اكثر من رصيدك!",
+    ],
+    "marry_bot": [
+        "يا حبيبي تبي تتزوج بوت؟ وش نوع العلاقة هذي؟ رومانسية رقمية؟",
+        "يونان فاملي يدعم الحب بكل اشكاله! بس البوت ما يقدر يوقع عقد زواج يا ذكي!",
+        "البوت قال لي: انا ما ابي اتزوج انسان بطيء المعالجة!",
+        "تبي تتزوج بوت؟ روح دور لك بوت ثاني يقبلك، هذا مشغول!",
+    ],
+    "marry_self": [
+        "تبي تتزوج نفسك؟ حتى المراة تستحي منك يا نرجسي!",
+        "يونان فاملي يحب الثقة بالنفس! بس كذا زيادة يا بطل!",
+        "حتى نفسك ما تبي تتزوجك! فكر فيها شوي!",
+        "يا اخي روح دور لك حبيب، ما في احد يتزوج نفسه غيرك!",
+    ],
+    "rob_self": [
+        "تبي تسرق نفسك؟ يونان فاملي ما يقبل الغباء بس انت تستاهل جائزة!",
+        "سرقت نفسك؟ كيف؟ مسكت ايدك اليمين بايدك اليسار؟",
+        "يا ذكي! روح سرق غيرك، نفسك ما عندها فلوس اصلا!",
+    ],
+    "rob_poor": [
+        "تبي تسرق فقير؟ حتى اللصوص في يونان فاملي عندهم اخلاق!",
+        "سرقت فقير؟ يعطيك العافية! سرقت منه... الهواء؟",
+        "الضحية فقير زيك! روحوا افتحوا نادي الفقراء مع بعض!",
+    ],
+    "transfer_self": [
+        "تحول لنفسك؟ يونان فاملي يحب الذكاء! بس انت زيادة!",
+        "حولت لنفسك؟ كانك تعطي نفسك هدية في عيد ميلادك!",
+        "يا بطل! الفلوس راحت وجت... لنفس المحفظة!",
+    ],
+    "divorce_cooldown": [
+        "يا ولد كم مرة تبي تطلق؟ يونان فاملي مش محكمة استئناف!",
+        "صارلك ساعة متزوج وبتطلق؟ حتى الستين ما تطلق بسرعتك!",
+        "روح استقر شوي! يونان فاملي يحب الاستقرار العائلي!",
+    ],
+    "already_married": [
+        "يا حبيبي انت متزوج! وش تبي؟ زوجة ثانية؟ يونان فاملي مو مسلسل تركي!",
+        "عندك زوج! روح اهتم فيها بدل ما تدور على ثانية!",
+        "تبي تتزوج وانت متزوج؟ حتى سلمان خان ما يقدر!",
+    ],
+    "partner_married": [
+        "الشخص متزوج! تبي تخرب بيته؟ يونان فاملي ما يقبل الخيانة!",
+        "روح دور لك عزابي! ما في داعي تسرق زوج غيرك!",
+    ],
+    "not_married": [
+        "انت مو متزوج! وش بتطلق؟ نفسك؟",
+        "تبي تطلق وانت عازب؟ يونان فاملي يحب الاحلام بس كذا زيادة!",
+    ],
+    "rob_fail": [
+        "الشرطة قبضت عليك! يونان فاملي ما يحمي اللصوص الفاشلين!",
+        "مسكتك الشرطة! حتى في السرقة انت فاشل!",
+        "انكشفت! روح اشتغل شريف افضل لك!",
+    ],
+    "rob_success": [
+        "يونان فاملي يفتخر بك! لص محترف وبارع!",
+        "سرقة ناجحة! يونان فاملي يعلم فنون السرقة من جيل لجيل!",
+        "مسكتها! يونان فاملي يسلم عليك يا لص المحترفين!",
+    ],
+    "daily_streak": [
+        "يا سلام! سلسلة يونان فاملي قوية! {streak} ايام!",
+        "مستمر يا بطل! عائلة يونان فخورة فيك!",
+        "ما شاء الله! ثبات يوناني اصيل!",
+    ],
+    "level_up": [
+        "يونان فاملي تهنئك! وصلت لمستوى جديد!",
+        "تطورت يا اسطورة! يونان فاملي تفتخر فيك!",
+        "صاروخ يونان فاملي! مستوى جديد!",
+    ],
+    "jackpot": [
+        "يا ولد! جاكبوت يونان فاملي! انت مليونير الان!",
+        "يونان فاملي تبارك لك! فزت بالجاكبوت الاسطوري!",
+        "صرت غني! يونان فاملي تبغى قرض منك!",
+    ],
+    "protection_active": [
+        "عندك حماية يونان فاملي! ما حد يقدر يلمسك!",
+        "يونان فاملي يحميك! الشرطة على اهبة الاستعداد!",
+    ],
+    "buy_property": [
+        "صار عندك عقار! يونان فاملي تصير رجل اعمال!",
+        "استثمار ذكي! يونان فاملي تفتخر فيك!",
+    ],
+}
+
+# ═══════════════════════════════════════════════════════════════════
+# قاعدة البيانات
+# ═══════════════════════════════════════════════════════════════════
 
 def load_db():
     if os.path.exists(DB_FILE):
@@ -53,14 +237,8 @@ def get_user(db, uid: str):
             "total_lost": 0,
             "total_gambled": 0,
             "properties": {
-                "cars": 0,
-                "stocks": 0,
-                "lands": 0,
-                "trains": 0,
-                "phones": 0,
-                "companies": 0,
-                "servers": 0,
-                "diamonds": 0,
+                "cars": 0, "stocks": 0, "lands": 0, "trains": 0,
+                "phones": 0, "companies": 0, "servers": 0, "diamonds": 0,
             },
             "inventory": {},
             "married_to": None,
@@ -88,55 +266,59 @@ def get_user(db, uid: str):
 
 
 MARKET = {
-    "bitcoin": {"name": "بيتكوين", "icon": "₿", "buy": 49000, "sell": 44000},
-    "gold": {"name": "ذهب", "icon": "🥇", "buy": 5000, "sell": 4500},
-    "diamond": {"name": "ألماس", "icon": "💎", "buy": 8200, "sell": 7400},
-    "silver": {"name": "فضة", "icon": "🥈", "buy": 986, "sell": 887},
-    "emerald": {"name": "زمرد", "icon": "💚", "buy": 5900, "sell": 5300},
-    "ruby": {"name": "ياقوت", "icon": "❤️", "buy": 6300, "sell": 5700},
-    "platinum": {"name": "بلاتين", "icon": "⚪", "buy": 15000, "sell": 13500},
-    "oil": {"name": "نفط", "icon": "🛢️", "buy": 8000, "sell": 7200},
+    "bitcoin": {"name": "بيتكوين", "icon": "\u20BF", "buy": 49000, "sell": 44000},
+    "gold": {"name": "ذهب", "icon": "\U0001F947", "buy": 5000, "sell": 4500},
+    "diamond": {"name": "الماس", "icon": "\U0001F48E", "buy": 8200, "sell": 7400},
+    "silver": {"name": "فضة", "icon": "\U0001F948", "buy": 986, "sell": 887},
+    "emerald": {"name": "زمرد", "icon": "\U0001F49A", "buy": 5900, "sell": 5300},
+    "ruby": {"name": "ياقوت", "icon": "\u2764\uFE0F", "buy": 6300, "sell": 5700},
+    "platinum": {"name": "بلاتين", "icon": "\u26AA", "buy": 15000, "sell": 13500},
+    "oil": {"name": "نفط", "icon": "\U0001F6E2\uFE0F", "buy": 8000, "sell": 7200},
 }
 
 PROPERTIES = {
-    "cars": {"name": "سيارات", "icon": "🚗", "price": 50000, "income": 5000, "desc": "تأجير سيارات فاخرة"},
-    "stocks": {"name": "أسهم", "icon": "📊", "price": 10000, "income": 1000, "desc": "محفظة استثمارية"},
-    "lands": {"name": "أراضي", "icon": "🏙️", "price": 100000, "income": 8000, "desc": "عقارات وتطوير"},
-    "trains": {"name": "قطارات", "icon": "🚂", "price": 200000, "income": 15000, "desc": "خطوط نقل"},
-    "phones": {"name": "هواتف", "icon": "📱", "price": 5000, "income": 500, "desc": "محل إلكترونيات"},
-    "companies": {"name": "شركات", "icon": "💻", "price": 500000, "income": 30000, "desc": "إمبراطورية أعمال"},
-    "servers": {"name": "سيرفرات", "icon": "🖥️", "price": 20000, "income": 2000, "desc": "استضافة سحابية"},
-    "diamonds": {"name": "ألماس", "icon": "💎", "price": 50000, "income": 4000, "desc": "مناجم ألماس"},
+    "cars": {"name": "سيارات", "icon": "\U0001F697", "price": 50000, "income": 5000, "desc": "تاجير سيارات فاخرة"},
+    "stocks": {"name": "اسهم", "icon": "\U0001F4CA", "price": 10000, "income": 1000, "desc": "محفظة استثمارية"},
+    "lands": {"name": "اراضي", "icon": "\U0001F3D9\uFE0F", "price": 100000, "income": 8000, "desc": "عقارات وتطوير"},
+    "trains": {"name": "قطارات", "icon": "\U0001F682", "price": 200000, "income": 15000, "desc": "خطوط نقل"},
+    "phones": {"name": "هواتف", "icon": "\U0001F4F1", "price": 5000, "income": 500, "desc": "محل الكترونيات"},
+    "companies": {"name": "شركات", "icon": "\U0001F4BB", "price": 500000, "income": 30000, "desc": "امبراطورية اعمال"},
+    "servers": {"name": "سيرفرات", "icon": "\U0001F5A5\uFE0F", "price": 20000, "income": 2000, "desc": "استضافة سحابية"},
+    "diamonds": {"name": "الماس", "icon": "\U0001F48E", "price": 50000, "income": 4000, "desc": "مناجم الماس"},
 }
 
 GAMES = {
-    "slots": {"name": "سلات", "icon": "🎰", "desc": "جاكبوت $50K!", "min": 50, "max": 5000, "color": C_GOLD},
-    "dice": {"name": "نرد", "icon": "🎲", "desc": "الأعلى رقم يفوز", "min": 100, "max": 10000, "color": C_BLUE},
-    "chicken": {"name": "دجاجة", "icon": "🐔", "desc": "كم تقدر تستمر؟", "min": 50, "max": 2000, "color": C_ORANGE},
-    "colors": {"name": "ألوان", "icon": "🎨", "desc": "خمن اللون x2", "min": 50, "max": 5000, "color": C_PURPLE},
-    "fruits": {"name": "فواكه", "icon": "🍎", "desc": "مطابقة الفواكه حتى x10", "min": 50, "max": 3000, "color": C_GREEN},
-    "boxes": {"name": "صناديق", "icon": "📦", "desc": "افتح الصندوق!", "min": 100, "max": 10000, "color": C_BLUE},
-    "wheel": {"name": "عجلة", "icon": "🎡", "desc": "دور العجلة حتى x10", "min": 100, "max": 50000, "color": C_PINK},
-    "gamble": {"name": "قمار", "icon": "🃏", "desc": "50/50 كل شيء أو لا شيء", "min": 100, "max": 50000, "color": C_RED},
-    "blackjack": {"name": "بلاك جاك", "icon": "🃏", "desc": "21 نقطة", "min": 100, "max": 10000, "color": C_GREEN},
-    "crash": {"name": "تكس", "icon": "📈", "desc": "اطلع قبل ما ينهار!", "min": 50, "max": 5000, "color": C_ORANGE},
-    "luck": {"name": "حظ", "icon": "🍀", "desc": "جرّب حظك حتى x10", "min": 10, "max": 1000, "color": C_GREEN},
+    "slots": {"name": "سلات", "icon": "\U0001F3B0", "desc": "جاكبوت 50K!", "min": 50, "max": 5000, "color": C_GOLD, "image": "slots"},
+    "dice": {"name": "نرد", "icon": "\U0001F3B2", "desc": "الاعلى رقم يفوز", "min": 100, "max": 10000, "color": C_BLUE, "image": "dice"},
+    "chicken": {"name": "دجاجة", "icon": "\U0001F414", "desc": "كم تقدر تستمر؟", "min": 50, "max": 2000, "color": C_ORANGE, "image": "chicken"},
+    "colors": {"name": "الوان", "icon": "\U0001F3A8", "desc": "خمن اللون x2", "min": 50, "max": 5000, "color": C_PURPLE, "image": "colors"},
+    "fruits": {"name": "فواكه", "icon": "\U0001F34E", "desc": "مطابقة الفواكه حتى x10", "min": 50, "max": 3000, "color": C_GREEN, "image": "fruits"},
+    "boxes": {"name": "صناديق", "icon": "\U0001F4E6", "desc": "افتح الصندوق!", "min": 100, "max": 10000, "color": C_BLUE, "image": "boxes"},
+    "wheel": {"name": "عجلة", "icon": "\U0001F3A1", "desc": "دور العجلة حتى x10", "min": 100, "max": 50000, "color": C_PINK, "image": "wheel"},
+    "gamble": {"name": "قمار", "icon": "\U0001F0CF", "desc": "50/50 كل شيء او لا شيء", "min": 100, "max": 50000, "color": C_RED, "image": "gamble"},
+    "blackjack": {"name": "بلاك جاك", "icon": "\U0001F0CF", "desc": "21 نقطة", "min": 100, "max": 10000, "color": C_GREEN, "image": "blackjack"},
+    "crash": {"name": "تكس", "icon": "\U0001F4C8", "desc": "اطلع قبل ما ينهار!", "min": 50, "max": 5000, "color": C_ORANGE, "image": "crash"},
+    "luck": {"name": "حظ", "icon": "\U0001F340", "desc": "جرب حظك حتى x10", "min": 10, "max": 1000, "color": C_GREEN, "image": "luck"},
 }
 
 ACHIEVEMENTS = {
-    "first_win": {"name": "أول فوز", "desc": "اربح لعبتك الأولى", "reward": 100},
-    "rich": {"name": "غني", "desc": "وصل لـ $100,000", "reward": 5000},
-    "millionaire": {"name": "مليونير", "desc": "وصل لـ $1,000,000", "reward": 50000},
+    "first_win": {"name": "اول فوز", "desc": "اربح لعبتك الاولى", "reward": 100},
+    "rich": {"name": "غني", "desc": "وصل لـ 100,000", "reward": 5000},
+    "millionaire": {"name": "مليونير", "desc": "وصل لـ 1,000,000", "reward": 50000},
     "jackpot": {"name": "جاكبوت", "desc": "اربح الجاكبوت في السلات", "reward": 10000},
     "married": {"name": "متزوج", "desc": "تزوج بنجاح", "reward": 1000},
     "robber": {"name": "لص محترف", "desc": "نجح في 10 سرقات", "reward": 5000},
-    "streak_7": {"name": "متسلسل", "desc": "سلسلة 7 أيام", "reward": 2000},
-    "streak_30": {"name": "أسطوري", "desc": "سلسلة 30 يوم", "reward": 20000},
+    "streak_7": {"name": "متسلسل", "desc": "سلسلة 7 ايام", "reward": 2000},
+    "streak_30": {"name": "اسطوري", "desc": "سلسلة 30 يوم", "reward": 20000},
     "level_10": {"name": "نجم", "desc": "وصل للمستوى 10", "reward": 5000},
-    "level_50": {"name": "إله", "desc": "وصل للمستوى 50", "reward": 100000},
+    "level_50": {"name": "اله", "desc": "وصل للمستوى 50", "reward": 100000},
     "properties_10": {"name": "مستثمر", "desc": "اشترِ 10 ممتلكات", "reward": 10000},
     "games_100": {"name": "لاعب محترف", "desc": "العب 100 لعبة", "reward": 5000},
 }
+
+# ═══════════════════════════════════════════════════════════════════
+# إعدادات البوت
+# ═══════════════════════════════════════════════════════════════════
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -183,23 +365,31 @@ class YFBank(commands.Bot):
 bot = YFBank()
 
 
-def emb(title: str, desc: str = "", color: int = C_GOLD):
+# ═══════════════════════════════════════════════════════════════════
+# دوال مساعدة
+# ═══════════════════════════════════════════════════════════════════
+
+def emb(title, desc="", color=C_GOLD, image_key=None, thumbnail_key=None):
     e = discord.Embed(title=title, description=desc, color=color, timestamp=datetime.now())
-    e.set_footer(text="YF BANK 2026 | عائلة يونان")
+    e.set_footer(text="YF BANK 2026 | عائلة يونان", icon_url=IMAGES.get("logo"))
+    if image_key and image_key in IMAGES:
+        e.set_image(url=IMAGES[image_key])
+    if thumbnail_key and thumbnail_key in IMAGES:
+        e.set_thumbnail(url=IMAGES[thumbnail_key])
     return e
 
 
-def get_rank(lvl: int) -> str:
-    ranks = ["مبتدئ", "تاجر", "مستثمر", "مليونير", "أسطورة", "إله"]
+def get_rank(lvl):
+    ranks = ["مبتدئ", "تاجر", "مستثمر", "مليونير", "اسطورة", "اله يوناني"]
     return ranks[min(lvl // 10, 5)]
 
 
-def progress_bar(current: int, total: int, length: int = 15) -> str:
+def progress_bar(current, total, length=15):
     filled = int(length * current / total)
     return "█" * filled + "░" * (length - filled)
 
 
-def format_money(amount: int) -> str:
+def format_money(amount):
     if amount >= 1_000_000_000:
         return f"{amount / 1_000_000_000:.1f}B"
     elif amount >= 1_000_000:
@@ -209,7 +399,13 @@ def format_money(amount: int) -> str:
     return str(amount)
 
 
-def check_achievements(data: dict):
+def get_funny(key, **kwargs):
+    msgs = FUNNY_MESSAGES.get(key, ["🤔"])
+    msg = random.choice(msgs)
+    return msg.format(**kwargs)
+
+
+def check_achievements(data):
     new = []
     achieved = set(data.get("achievements", []))
     checks = [
@@ -231,20 +427,34 @@ def check_achievements(data: dict):
             data["balance"] += ACHIEVEMENTS[key]["reward"]
     return new
 
+# ═══════════════════════════════════════════════════════════════════
+# الأوامر بالعربية
+# ═══════════════════════════════════════════════════════════════════
 
-@bot.tree.command(name="balance", description="عرض الرصيد")
-@app_commands.describe(user="مستخدم آخر (اختياري)")
-async def balance_cmd(interaction: discord.Interaction, user: Optional[discord.User] = None):
-    target = user or interaction.user
+# ───────────────────────────────────────────
+# رصيد
+# ───────────────────────────────────────────
+@bot.command(name="رصيد")
+async def balance_cmd(ctx, user: Optional[discord.User] = None):
+    target = user or ctx.author
     data = get_user(bot.db, str(target.id))
     total = data["balance"] + data["bank"]
     xp_needed = data["level"] * 1000
     xp_progress = data["xp"] % xp_needed
     data["last_active"] = datetime.now().isoformat()
     save_db(bot.db)
-    embed = emb(f"💳 محفظة — {target.display_name} {'👑' if data['level'] >= 30 else ''}", color=C_GOLD)
-    embed.add_field(name="", value=f"## 💰 ${format_money(total)}", inline=False)
-    embed.add_field(name="", value="الرصيد الكلي • عملات YF", inline=False)
+
+    funny_note = ""
+    if total < 1000:
+        funny_note = f"\n\n{get_funny('broke')}"
+
+    embed = emb(
+        f"محفظة — {target.display_name} {'👑' if data['level'] >= 30 else ''}",
+        f"## 💰 ${format_money(total)}\nالرصيد الكلي • عملات YF{funny_note}",
+        C_GOLD,
+        image_key="balance"
+    )
+
     bar = progress_bar(xp_progress, xp_needed, 18)
     embed.add_field(
         name=f"⚡ المستوى {data['level']} — {get_rank(data['level'])}",
@@ -257,16 +467,21 @@ async def balance_cmd(interaction: discord.Interaction, user: Optional[discord.U
     embed.add_field(name="💼 ممتلكات", value=f"{sum(data['properties'].values())}", inline=True)
     embed.add_field(name="💎 جواهر", value=f"{sum(data.get('inventory', {}).values())}", inline=True)
     embed.add_field(name="🔥 سلسلة", value=f"{data['streak']} يوم", inline=True)
+
     view = discord.ui.View()
-    view.add_item(discord.ui.Button(label="💸 تحويل", style=discord.ButtonStyle.primary))
-    view.add_item(discord.ui.Button(label="🏛️ إيداع", style=discord.ButtonStyle.success))
+    view.add_item(discord.ui.Button(
+        view.add_item(discord.ui.Button(label="🏛️ إيداع", style=discord.ButtonStyle.success))
     view.add_item(discord.ui.Button(label="📊 تداول", style=discord.ButtonStyle.secondary))
-    await interaction.response.send_message(embed=embed, view=view)
+
+    await ctx.send(embed=embed, view=view)
 
 
-@bot.tree.command(name="daily", description="المكافأة اليومية")
-async def daily_cmd(interaction: discord.Interaction):
-    data = get_user(bot.db, str(interaction.user.id))
+# ───────────────────────────────────────────
+# يومي
+# ───────────────────────────────────────────
+@bot.command(name="يومي")
+async def daily_cmd(ctx):
+    data = get_user(bot.db, str(ctx.author.id))
     now = datetime.now()
     if data["last_daily"]:
         last = datetime.fromisoformat(data["last_daily"])
@@ -275,8 +490,13 @@ async def daily_cmd(interaction: discord.Interaction):
             remaining = timedelta(hours=24) - diff
             h = int(remaining.total_seconds() // 3600)
             m = int((remaining.total_seconds() % 3600) // 60)
-            embed = emb("⏳ المكافأة اليومية", f"لقد استلمت مكافأتك!\nارجع بعد **{h}س {m}د**", C_RED)
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            embed = emb(
+                "⏳ المكافأة اليومية",
+                f"{get_funny('broke')}\n\nارجع بعد **{h}س {m}د** ⏰",
+                C_RED,
+                image_key="broke"
+            )
+            await ctx.send(embed=embed)
             return
         if diff > timedelta(hours=48):
             data["streak"] = 1
@@ -284,6 +504,7 @@ async def daily_cmd(interaction: discord.Interaction):
             data["streak"] += 1
     else:
         data["streak"] = 1
+
     base = 1000
     streak_bonus = min(data["streak"] * 100, 5000)
     level_bonus = data["level"] * 50
@@ -292,78 +513,99 @@ async def daily_cmd(interaction: discord.Interaction):
     data["last_daily"] = now.isoformat()
     data["total_earned"] += total
     data["xp"] += 100
+
     while data["xp"] >= data["level"] * 1000:
         data["xp"] -= data["level"] * 1000
         data["level"] += 1
+
     new_ach = check_achievements(data)
     save_db(bot.db)
-    embed = emb("🎁 تم استلام المكافأة!", color=C_GREEN)
+
+    streak_msg = get_funny("daily_streak", streak=data["streak"]) if data["streak"] > 1 else ""
+
+    embed = emb("🎁 تم استلام المكافأة!", color=C_GREEN, image_key="daily")
     embed.add_field(name="💰 أساسية", value=f"${base:,}", inline=True)
     embed.add_field(name="🔥 سلسلة", value=f"${streak_bonus:,} (x{data['streak']})", inline=True)
     embed.add_field(name="⚡ مستوى", value=f"${level_bonus:,}", inline=True)
     embed.add_field(name="💎 إجمالي", value=f"**${total:,}**", inline=False)
     embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}", inline=True)
     embed.add_field(name="🔥 سلسلة", value=f"**{data['streak']} أيام**", inline=True)
+    if streak_msg:
+        embed.add_field(name="🎉 يونان فاملي تقول:", value=streak_msg, inline=False)
     if new_ach:
         embed.add_field(
-            name="🎉 إنجاز جديد!",
+            name="🏆 إنجاز جديد!",
             value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
             inline=False,
         )
-    await interaction.response.send_message(embed=embed)
+    await ctx.send(embed=embed)
 
 
-@bot.tree.command(name="top", description="أغنى المستخدمين")
-async def top_cmd(interaction: discord.Interaction):
-    embed = emb("🏆 أغنى المستخدمين — عائلة يونان", color=C_GOLD)
+# ───────────────────────────────────────────
+# مطنوخين (توب)
+# ───────────────────────────────────────────
+@bot.command(name="مطنوخين")
+async def top_cmd(ctx):
+    embed = emb("🏆 قائمة المطنوخين — عائلة يونان", "أغنى وأقوى أعضاء العائلة! 💎", C_GOLD, image_key="top")
     users_data = [
         (m, d["balance"] + d["bank"], d["level"])
         for uid, d in bot.db.items()
-        if (m := interaction.guild.get_member(int(uid)))
+        if (m := ctx.guild.get_member(int(uid)))
     ]
     users_data.sort(key=lambda x: x[1], reverse=True)
     medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+
     for i, (member, total, lvl) in enumerate(users_data[:10]):
+        rank_emoji = "👑" if i == 0 else "💎" if i == 1 else "🥉" if i == 2 else "🌟"
         embed.add_field(
-            name=f"{medals[i] if i < 3 else f'#{i+1}'} {member.display_name}",
-            value=f"💰 ${format_money(total)} | ⚡ Lvl {lvl}",
+            name=f"{medals[i] if i < 3 else f'#{i+1}'} {rank_emoji} {member.display_name}",
+            value=f"💰 ${format_money(total)} | ⚡ Lvl {lvl} | {get_rank(lvl)}",
             inline=False,
         )
+
     view = discord.ui.View()
     view.add_item(discord.ui.Button(label="💰 الأغنى", style=discord.ButtonStyle.primary))
     view.add_item(discord.ui.Button(label="📈 المستوى", style=discord.ButtonStyle.secondary))
     view.add_item(discord.ui.Button(label="💀 اللصوص", style=discord.ButtonStyle.danger))
-    await interaction.response.send_message(embed=embed, view=view)
+    await ctx.send(embed=embed, view=view)
 
 
-@bot.tree.command(name="market", description="أسعار السوق الحية")
-async def market_cmd(interaction: discord.Interaction):
-    embed = emb("📊 سوق YF — الأسعار الحية", "تتغير كل 30 دقيقة", C_GOLD)
+# ───────────────────────────────────────────
+# سوق
+# ───────────────────────────────────────────
+@bot.command(name="سوق")
+async def market_cmd(ctx):
+    embed = emb("📊 سوق YF — الأسعار الحية", "تتغير كل 30 دقيقة | عائلة يونان للتداول 💹", C_GOLD, image_key="market")
     for key, item in bot.market.items():
         original = MARKET[key]["buy"]
         change = ((item["buy"] - original) / original) * 100
-        emoji = "🟢" if change >= 0 else "🔴"
+        emoji = "🟢📈" if change >= 0 else "🔴📉"
         embed.add_field(
             name=f"{item['icon']} {item['name']}",
-            value=f"{emoji} شراء: ${format_money(item['buy'])}\nبيع: ${format_money(item['sell'])}\nتغير: {change:+.2f}%",
+            value=f"{emoji} شراء: `${format_money(item['buy'])}`\nبيع: `${format_money(item['sell'])}`\nتغير: `{change:+.2f}%`",
             inline=True,
         )
     view = discord.ui.View()
     view.add_item(discord.ui.Button(label="🛒 شراء", style=discord.ButtonStyle.success))
     view.add_item(discord.ui.Button(label="💰 بيع", style=discord.ButtonStyle.danger))
     view.add_item(discord.ui.Button(label="📦 مخزن", style=discord.ButtonStyle.secondary))
-    await interaction.response.send_message(embed=embed, view=view)
+    await ctx.send(embed=embed, view=view)
 
 
-@bot.tree.command(name="games", description="قائمة الألعاب")
-async def games_cmd(interaction: discord.Interaction):
-    embed = emb("🎮 الألعاب — اختر لعبتك", "💎 💎 💎 جاكبوت! +$50,000 ✨", C_GOLD)
+# ───────────────────────────────────────────
+# ألعاب
+# ───────────────────────────────────────────
+@bot.command(name="ألعاب")
+async def games_cmd(ctx):
+    embed = emb("🎮 ألعاب يونان فاملي", "💎 💎 💎 جاكبوت! +$50,000 ✨\nاختر لعبتك يا بطل!", C_GOLD, image_key="games")
+        embed = emb("🎮 ألعاب يونان فاملي", "💎 💎 💎 جاكبوت! +$50,000 ✨\nاختر لعبتك يا بطل!", C_GOLD, image_key="games")
     for key, game in GAMES.items():
         embed.add_field(
             name=f"{game['icon']} {game['name']}",
-            value=f"{game['desc']}\nحد: ${game['min']:,}-${game['max']:,}",
+            value=f"{game['desc']}\nحد: `${game['min']:,}-${game['max']:,}`",
             inline=True,
         )
+
     select = discord.ui.Select(
         placeholder="🎮 اختر لعبة...",
         options=[
@@ -379,7 +621,7 @@ async def games_cmd(interaction: discord.Interaction):
 
     async def cb(i: discord.Interaction):
         g = GAMES[select.values[0]]
-        e = emb(f"{g['icon']} {g['name']}", f"{g['desc']}\nحد الرهان: ${g['min']:,}-${g['max']:,}", g["color"])
+        e = emb(f"{g['icon']} {g['name']}", f"{g['desc']}\nحد الرهان: `${g['min']:,}-${g['max']:,}`", g["color"], image_key=g.get("image"))
         v = discord.ui.View()
         for amt in [100, 500, 1000, 5000]:
             if g["min"] <= amt <= g["max"]:
@@ -390,33 +632,38 @@ async def games_cmd(interaction: discord.Interaction):
     select.callback = cb
     view = discord.ui.View()
     view.add_item(select)
-    await interaction.response.send_message(embed=embed, view=view)
+    await ctx.send(embed=embed, view=view)
 
-
-@bot.tree.command(name="slots", description="آلة الحظ — جرب حظك!")
-@app_commands.describe(bet="مبلغ الرهان ($50 - $5,000)")
-async def slots_cmd(interaction: discord.Interaction, bet: int):
-    data = get_user(bot.db, str(interaction.user.id))
+# ───────────────────────────────────────────
+# سلات
+# ───────────────────────────────────────────
+@bot.command(name="سلات")
+async def slots_cmd(ctx, bet: int):
+    data = get_user(bot.db, str(ctx.author.id))
     if bet < 50 or bet > 5000:
-        await interaction.response.send_message("❌ الرهان: $50 - $5,000!", ephemeral=True)
+        await ctx.send("❌ الرهان: $50 - $5,000!")
         return
     if data["balance"] < bet:
-        await interaction.response.send_message("❌ رصيدك لا يكفي!", ephemeral=True)
+        embed = emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")
+        await ctx.send(embed=embed)
         return
+
     symbols = ["🍒", "🍋", "🍊", "🍇", "💎", "7️⃣", "🔔", "🎰"]
     weights = [25, 22, 18, 15, 8, 5, 4, 3]
-    await interaction.response.defer()
-    msg = await interaction.followup.send("🎰 يدور...")
+
+    msg = await ctx.send("🎰 يدور...")
     for _ in range(4):
         await asyncio.sleep(0.6)
         temp = random.choices(symbols, weights=weights, k=3)
         await msg.edit(content=f"🎰 | {temp[0]} | {temp[1]} | {temp[2]} | 🎰")
+
     result = random.choices(symbols, weights=weights, k=3)
     mult = 0
     if result[0] == result[1] == result[2]:
         mult = {"💎": 100, "7️⃣": 50, "🔔": 25, "🎰": 20}.get(result[0], 10)
     elif result[0] == result[1] or result[1] == result[2] or result[0] == result[2]:
         mult = 2
+
     winnings = bet * mult
     if mult > 0:
         data["balance"] += winnings - bet
@@ -425,18 +672,22 @@ async def slots_cmd(interaction: discord.Interaction, bet: int):
         if mult >= 50:
             data["jackpots"] += 1
         color = C_GREEN
-        title = f"💎💎💎 جاكبوت!!! +${winnings:,}" if mult >= 50 else f"🎉 فزت بـ ${winnings:,}!"
+        title = get_funny("jackpot") if mult >= 50 else f"🎉 فزت بـ ${winnings:,}!"
+        img_key = "jackpot" if mult >= 50 else "slots"
     else:
         data["balance"] -= bet
         data["total_lost"] += bet
         data["losses"] += 1
         color = C_RED
         title = "😢 حظ سيئ!"
+        img_key = "slots"
+
     data["games_played"] += 1
     data["total_gambled"] += bet
     new_ach = check_achievements(data)
     save_db(bot.db)
-    embed = emb(title, color=color)
+
+    embed = emb(title, color=color, image_key=img_key)
     embed.add_field(name="🎰 النتيجة", value=f"### | {result[0]} | {result[1]} | {result[2]} |", inline=False)
     embed.add_field(name="💵 الرهان", value=f"${bet:,}", inline=True)
     embed.add_field(name="📈 المضاعف", value=f"x{mult}", inline=True)
@@ -444,23 +695,27 @@ async def slots_cmd(interaction: discord.Interaction, bet: int):
     embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}", inline=False)
     if new_ach:
         embed.add_field(
-            name="🎉 إنجاز جديد!",
+            name="🏆 إنجاز جديد!",
             value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
             inline=False,
         )
     await msg.edit(content=None, embed=embed)
 
 
-@bot.tree.command(name="wheel", description="عجلة الحظ — اربح حتى x10!")
-@app_commands.describe(bet="مبلغ الرهان ($100 - $50,000)")
-async def wheel_cmd(interaction: discord.Interaction, bet: int):
-    data = get_user(bot.db, str(interaction.user.id))
+# ───────────────────────────────────────────
+# عجلة
+# ───────────────────────────────────────────
+@bot.command(name="عجلة")
+async def wheel_cmd(ctx, bet: int):
+    data = get_user(bot.db, str(ctx.author.id))
     if bet < 100 or bet > 50000:
-        await interaction.response.send_message("❌ الرهان: $100 - $50,000!", ephemeral=True)
+        await ctx.send("❌ الرهان: $100 - $50,000!")
         return
     if data["balance"] < bet:
-        await interaction.response.send_message("❌ رصيدك لا يكفي!", ephemeral=True)
+        embed = emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")
+        await ctx.send(embed=embed)
         return
+
     segments = [
         ("0x 💀", 0.0, "💀", C_RED),
         ("0.5x 🔴", 0.5, "🔴", C_RED),
@@ -472,9 +727,400 @@ async def wheel_cmd(interaction: discord.Interaction, bet: int):
         ("5x ✨", 5.0, "✨", C_GOLD),
         ("10x 💎", 10.0, "💎", C_PURPLE),
     ]
-@bot.event
-async def on_ready():
-    print(f"✅ YF BANK Online! {bot.user.name}")
-    await bot.tree.sync()
+    weights = [8, 12, 15, 20, 18, 12, 8, 5, 2]
 
-bot.run(BOT_TOKEN)
+    msg = await ctx.send("🎡 تدور العجلة...")
+    for _ in range(5):
+        temp = random.choice(segments)
+        await asyncio.sleep(0.5)
+        await msg.edit(content=f"🎡 → {temp[2]} {temp[0]} ← 🎡")
+    await asyncio.sleep(1)
+
+    result = random.choices(segments, weights=weights)[0]
+    label, mult, emoji, color = result
+    winnings = int(bet * mult)
+
+    if mult > 1:
+        data["balance"] += winnings - bet
+        data["total_earned"] += winnings - bet
+        data["wins"] += 1
+        text = f"🎉 ربحت **${winnings:,}**!"
+    elif mult == 1:
+        text = f"😊 استردت **${winnings:,}**"
+        color = C_BLUE
+    elif mult > 0:
+        data["balance"] -= (bet - winnings)
+        data["total_lost"] += (bet - winnings)
+        text = f"😢 خسرت **${bet - winnings:,}**"
+        color = C_ORANGE
+    else:
+        data["balance"] -= bet
+        data["total_lost"] += bet
+        data["losses"] += 1
+        text = f"💀 خسرت كل شيء! **-${bet:,}**"
+
+    data["games_played"] += 1
+    data["total_gambled"] += bet
+    new_ach = check_achievements(data)
+    save_db(bot.db)
+
+    embed = emb(f"🎡 عجلة الحظ — {label}", text, color, image_key="wheel")
+    embed.add_field(name="💵 الرهان", value=f"${bet:,}", inline=True)
+    embed.add_field(name="📈 المضاعف", value=f"x{mult}", inline=True)
+    embed.add_field(name="💰 الأرباح", value=f"${winnings:,}", inline=True)
+    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}", inline=False)
+    if new_ach:
+        embed.add_field(
+            name="🏆 إنجاز جديد!",
+            value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
+            inline=False,
+        )
+    await msg.edit(content=None, embed=embed)
+
+
+# ───────────────────────────────────────────
+# بلاك جاك
+# ───────────────────────────────────────────
+@bot.command(name="بلاكجاك")
+async def blackjack_cmd(ctx, bet: int):
+    data = get_user(bot.db, str(ctx.author.id))
+    if bet < 100 or bet > 10000:
+        await ctx.send("❌ الرهان: $100 - $10,000!")
+        return
+    if data["balance"] < bet:
+        embed = emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")
+        await ctx.send(embed=embed)
+        return
+
+    suits = ["♠️", "♥️", "♦️", "♣️"]
+    cards = {"A": 11, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10, "Q": 10, "K": 10}
+
+    def draw():
+        return (random.choice(list(cards.keys())), random.choice(suits))
+
+    def hand_value(hand):
+        val = sum(cards[c[0]] for c in hand)
+        aces = sum(1 for c in hand if c[0] == "A")
+        while val > 21 and aces > 0:
+            val -= 10
+            aces -= 1
+        return val
+
+    player = [draw(), draw()]
+    dealer = [draw(), draw()]
+
+    embed = emb("🃏 بلاك جاك", f"رهانك: **${bet:,}**", C_GREEN, image_key="blackjack")
+    embed.add_field(name="يدك", value=f"{' '.join([c[0]+c[1] for c in player])} = **{hand_value(player)}**", inline=False)
+    embed.add_field(name="الديلر", value=f"{dealer[0][0]}{dealer[0][1]} ❓", inline=False)
+
+    view = discord.ui.View()
+    hit_btn = discord.ui.Button(label="🃏 Hit", style=discord.ButtonStyle.primary)
+    stand_btn = discord.ui.Button(label="🛑 Stand", style=discord.ButtonStyle.danger)
+
+    async def hit_cb(i: discord.Interaction):
+        if i.user.id != ctx.author.id:
+            await i.response.send_message("❌ مو دورك!", ephemeral=True)
+            return
+        player.append(draw())
+        pv = hand_value(player)
+        if pv > 21:
+            data["balance"] -= bet
+            data["total_lost"] += bet
+            data["losses"] += 1
+            data["games_played"] += 1
+            data["total_gambled"] += bet
+            save_db(bot.db)
+            e = emb(
+                "💥 انفجرت!",
+                f"يدك: {' '.join([c[0]+c[1] for c in player])} = **{pv}**\nخسرت **${bet:,}**",
+                C_RED,
+                image_key="blackjack"
+            )
+            e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+            await i.response.edit_message(embed=e, view=None)
+        else:
+            e = emb("🃏 بلاك جاك", f"رهانك: **${bet:,}**", C_GREEN, image_key="blackjack")
+            e.add_field(name="يدك", value=f"{' '.join([c[0]+c[1] for c in player])} = **{pv}**", inline=False)
+            e.add_field(name="الديلر", value=f"{dealer[0][0]}{dealer[0][1]} ❓", inline=False)
+            await i.response.edit_message(embed=e)
+
+    async def stand_cb(i: discord.Interaction):
+        if i.user.id != ctx.author.id:
+            await i.response.send_message("❌ مو دورك!", ephemeral=True)
+            return
+        while hand_value(dealer) < 17:
+            dealer.append(draw())
+        dv = hand_value(dealer)
+        pv = hand_value(player)
+
+        if dv > 21 or pv > dv:
+            win = bet * 2
+            data["balance"] += bet
+            data["total_earned"] += bet
+            data["wins"] += 1
+            text = f"🎉 فزت بـ **${win:,}**!"
+            color = C_GREEN
+        elif pv < dv:
+            data["balance"] -= bet
+            data["total_lost"] += bet
+            data["losses"] += 1
+            text = f"😢 الديلر فاز! خسرت **${bet:,}**"
+            color = C_RED
+        else:
+            text = f"🤝 تعادل! استردت **${bet:,}**"
+            color = C_BLUE
+
+        data["games_played"] += 1
+        data["total_gambled"] += bet
+        new_ach = check_achievements(data)
+        save_db(bot.db)
+
+        e = emb(f"🃏 النتيجة — {text}", "", color, image_key="blackjack")
+        e.add_field(name="يدك", value=f"{' '.join([c[0]+c[1] for c in player])} = **{pv}**", inline=False)
+        e.add_field(name="الديلر", value=f"{' '.join([c[0]+c[1] for c in dealer])} = **{dv}**", inline=False)
+        e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+        if new_ach:
+            e.add_field(
+                name="🏆 إنجاز جديد!",
+                value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
+            )
+        await i.response.edit_message(embed=e, view=None)
+
+    hit_btn.callback = hit_cb
+    stand_btn.callback = stand_cb
+    view.add_item(hit_btn)
+    view.add_item(stand_btn)
+    await ctx.send(embed=embed, view=view)
+
+# ───────────────────────────────────────────
+# تكس
+# ───────────────────────────────────────────
+@bot.command(name="تكس")
+async def crash_cmd(ctx, bet: int):
+    data = get_user(bot.db, str(ctx.author.id))
+    if bet < 50 or bet > 5000:
+        await ctx.send("❌ الرهان: $50 - $5,000!")
+        return
+    if data["balance"] < bet:
+        embed = emb("❌ فلوسك ما تكفي!", get_funny("broke"), C_RED, image_key="broke")
+        await ctx.send(embed=embed)
+        return
+
+    multiplier = 1.0
+    crash_point = random.uniform(1.1, 5.0)
+
+    embed = emb("📈 تكس", f"رهان: **${bet:,}**\nالمضاعف: **x{multiplier:.2f}**\nاضغط **Cash Out**!", C_ORANGE, image_key="crash")
+    view = discord.ui.View()
+    cash_btn = discord.ui.Button(label="💰 Cash Out", style=discord.ButtonStyle.success)
+
+    async def cash_cb(i: discord.Interaction):
+        if i.user.id != ctx.author.id:
+            await i.response.send_message("❌ مو لعبتك!", ephemeral=True)
+            return
+        winnings = int(bet * multiplier)
+        data["balance"] += winnings - bet
+        data["total_earned"] += winnings - bet
+        data["wins"] += 1
+        data["games_played"] += 1
+        data["total_gambled"] += bet
+        new_ach = check_achievements(data)
+        save_db(bot.db)
+        e = emb(f"🎉 Cash Out! x{multiplier:.2f}", f"ربحت **${winnings:,}**", C_GREEN, image_key="crash")
+        e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+        if new_ach:
+            e.add_field(
+                name="🏆 إنجاز جديد!",
+                value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
+            )
+        await i.response.edit_message(embed=e, view=None)
+
+    cash_btn.callback = cash_cb
+    view.add_item(cash_btn)
+    msg = await ctx.send(embed=embed, view=view)
+
+    for _ in range(50):
+        await asyncio.sleep(0.5)
+        multiplier += random.uniform(0.05, 0.3)
+        if multiplier >= crash_point:
+            data["balance"] -= bet
+            data["total_lost"] += bet
+            data["losses"] += 1
+            data["games_played"] += 1
+            data["total_gambled"] += bet
+            save_db(bot.db)
+            e = emb(f"💥 انهار عند x{crash_point:.2f}!", f"خسرت **${bet:,}**", C_RED, image_key="crash")
+            e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+            await msg.edit(embed=e, view=None)
+            return
+        embed = emb("📈 تكس", f"رهان: **${bet:,}**\nالمضاعف: **x{multiplier:.2f}**\nاضغط **Cash Out**!", C_ORANGE, image_key="crash")
+        await msg.edit(embed=embed)
+
+    winnings = int(bet * multiplier)
+    data["balance"] += winnings - bet
+    data["total_earned"] += winnings - bet
+    data["wins"] += 1
+    data["games_played"] += 1
+    data["total_gambled"] += bet
+    save_db(bot.db)
+    e = emb(f"🎉 وصلت للحد الأقصى! x{multiplier:.2f}", f"ربحت **${winnings:,}**", C_GREEN, image_key="crash")
+    e.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+    await msg.edit(embed=e, view=None)
+
+
+# ───────────────────────────────────────────
+# نهب (سرقة)
+# ───────────────────────────────────────────
+@bot.command(name="نهب")
+async def rob_cmd(ctx, user: discord.User):
+    if user.id == ctx.author.id:
+        embed = emb("🤡 يا حبيبي!", get_funny("rob_self"), C_RED, image_key="rob_fail")
+        await ctx.send(embed=embed)
+        return
+
+    data = get_user(bot.db, str(ctx.author.id))
+    victim = get_user(bot.db, str(user.id))
+
+    if victim["balance"] < 500:
+        embed = emb("😂 فقير زيك!", get_funny("rob_poor"), C_RED, image_key="rob_fail")
+        await ctx.send(embed=embed)
+        return
+
+    if data.get("protection") and datetime.fromisoformat(data["protection_expires"]) > datetime.now():
+        embed = emb("🛡️ محمي!", get_funny("protection_active"), C_BLUE, image_key="protection")
+        await ctx.send(embed=embed)
+        return
+
+    chance = 0.45
+    if victim["balance"] > data["balance"] * 2:
+        chance -= 0.15
+    if data["properties"].get("cars", 0) > 0:
+        chance += 0.05
+
+    data["rob_attempts"] += 1
+    if random.random() < chance:
+        stolen = random.randint(int(victim["balance"] * 0.05), int(victim["balance"] * 0.25))
+        victim["balance"] -= stolen
+        data["balance"] += stolen
+        data["total_earned"] += stolen
+        data["rob_success"] += 1
+        text = f"🎉 {get_funny('rob_success')}\n\nسرقت **${stolen:,}** من {user.mention}!"
+        color = C_GREEN
+        img_key = "rob"
+    else:
+        fine = random.randint(500, 2000)
+        data["balance"] -= fine
+        data["total_lost"] += fine
+        data["rob_failed"] += 1
+        text = f"{get_funny('rob_fail')}\n\n❌ تم القبض عليك! دفعت غرامة **${fine:,}**"
+        color = C_RED
+        img_key = "rob_fail"
+
+    new_ach = check_achievements(data)
+    save_db(bot.db)
+    embed = emb("🦹 سرقة", text, color, image_key=img_key)
+    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+    if new_ach:
+        embed.add_field(
+            name="🏆 إنجاز جديد!",
+            value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
+        )
+    await ctx.send(embed=embed)
+
+
+# ───────────────────────────────────────────
+# حماية
+# ───────────────────────────────────────────
+@bot.command(name="حماية")
+async def protection_cmd(ctx, hours: int = 24):
+    data = get_user(bot.db, str(ctx.author.id))
+    cost = hours * 500
+
+    if data["balance"] < cost:
+        embed = emb("❌ فلوسك ما تكفي!", f"تكلفة الحماية: ${cost:,}\n{get_funny('broke')}", C_RED, image_key="broke")
+        await ctx.send(embed=embed)
+        return
+
+    data["balance"] -= cost
+    data["protection"] = True
+    data["protection_expires"] = (datetime.now() + timedelta(hours=hours)).isoformat()
+    save_db(bot.db)
+
+    embed = emb(
+        "🛡️ حماية يونان فاملي!",
+        f"{get_funny('protection_active')}\n\nتم تفعيل الحماية لمدة **{hours} ساعة** مقابل **${cost:,}**",
+        C_BLUE,
+        image_key="protection"
+    )
+    embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
+    embed.add_field(name="⏰ تنتهي", value=f"<t:{int((datetime.now() + timedelta(hours=hours)).timestamp())}:R>")
+    await ctx.send(embed=embed)
+
+
+# ───────────────────────────────────────────
+# زواج
+# ───────────────────────────────────────────
+@bot.command(name="زواج")
+async def marry_cmd(ctx, user: discord.User):
+    if user.id == ctx.author.id:
+        embed = emb("🪞 يا نرجسي!", get_funny("marry_self"), C_RED, image_key="marry_self")
+        await ctx.send(embed=embed)
+        return
+    if user.bot:
+        embed = emb("🤖 يا حبيبي!", get_funny("marry_bot"), C_RED, image_key="marry_bot")
+        await ctx.send(embed=embed)
+        return
+
+    data = get_user(bot.db, str(ctx.author.id))
+    partner = get_user(bot.db, str(user.id))
+
+    if data["married_to"] is not None:
+        embed = emb("😂 يا حبيبي!", get_funny("already_married"), C_RED, image_key="marry")
+        await ctx.send(embed=embed)
+        return
+    if partner["married_to"] is not None:
+        embed = emb("💔 للأسف!", get_funny("partner_married"), C_RED, image_key="marry")
+        await ctx.send(embed=embed)
+        return
+
+    embed = emb("💍 عرض زواج يوناني!", f"{ctx.author.mention} يعرض الزواج على {user.mention}!\nالمهر: **$5,000** 💎", C_PINK, image_key="marry")
+    view = discord.ui.View()
+    yes_btn = discord.ui.Button(label="💍 نعم!", style=discord.ButtonStyle.success)
+    no_btn = discord.ui.Button(label="❌ لا", style=discord.ButtonStyle.danger)
+
+    async def yes_cb(i: discord.Interaction):
+        if i.user.id != user.id:
+            await i.response.send_message("❌ مو لك!", ephemeral=True)
+            return
+        if data["balance"] < 5000:
+            await i.response.send_message("❌ فلوسك ما تكفي للمهر!", ephemeral=True)
+            return
+
+        data["balance"] -= 5000
+        partner["balance"] += 5000
+        data["married_to"] = str(user.id)
+        partner["married_to"] = str(ctx.author.id)
+        data["married_since"] = datetime.now().isoformat()
+        partner["married_since"] = data["married_since"]
+        data["dowry"] = 5000
+        partner["dowry"] = 5000
+        new_ach = check_achievements(data)
+        save_db(bot.db)
+
+        e = emb("💍 زواج يوناني ناجح!", f"{ctx.author.mention} ❤️ {user.mention}\nمبروك يا عروسين! 🎉🎊", C_PINK, image_key="marry")
+        if new_ach:
+            e.add_field(
+                name="🏆 إنجاز جديد!",
+                value="\n".join([f"🏆 **{a['name']}** (+${a['reward']:,})" for a in new_ach]),
+            )
+        await i.response.edit_message(embed=e, view=None)
+
+    async def no_cb(i: discord.Interaction):
+        if i.user.id != user.id:
+            await i.response.send_message("❌ مو لك!", ephemeral=True)
+            return
+        await i.response.edit_message(
+            embed=emb("💔 رفض يوناني!", f"{user.mention} رفض عرض {ctx.author.mention}!\n{get_funny('marry_self')}", C_RED, image_key="divorce"),
+            view=None,
+        )
+
+    yes_btn.callba
