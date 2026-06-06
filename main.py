@@ -507,7 +507,7 @@ async def transfer_cmd(ctx, user: discord.User, amount: int):
     embed = emb("💸 تحويل يوناني ناجح!", f"{ctx.author.mention} → {user.mention}\nالمبلغ: **${amount:,}** 💰", C_GREEN, image_key="transfer")
     embed.add_field(name="🪙 رصيدك", value=f"${data['balance']:,}")
     await ctx.send(embed=embed)
-    @bot.command(name="ألعاب")
+@bot.command(name="ألعاب")
 async def games_cmd(ctx):
     embed = emb("🎮 ألعاب يونان فاملي", "💎 جاكبوت! +$50,000 ✨\nاختر لعبتك يا بطل!", C_GOLD, image_key="games")
     for key, game in GAMES.items():
