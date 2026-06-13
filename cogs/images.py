@@ -7,7 +7,7 @@ from io import BytesIO
 from utils.db import get_user, save_db
 from utils.helpers import fmt, get_rank
 
-PROFILE_BG = "IMG-20260613-WA0001.jpg"
+PROFILE_BG = "PROFILE_BG.png"
 TOP_BG     = "IMG-20260613-WA0002.jpg"
 
 
