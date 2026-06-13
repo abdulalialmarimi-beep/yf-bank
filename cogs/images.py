@@ -36,9 +36,9 @@ class Images(commands.Cog):
         data   = get_user(self.bot.db, str(target.id))
         bg     = Image.open(PROFILE_BG).convert("RGBA")
         draw   = ImageDraw.Draw(bg)
-        f_big  = load_font(55)
-        f_med  = load_font(45)
-        f_small= load_font(35)
+        f_big  = load_font(90)
+        f_med  = load_font(75)
+        f_small= load_font(62)
 
         # ── 1: صورة العضو ──
         try:
