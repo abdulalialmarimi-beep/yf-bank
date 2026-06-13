@@ -12,24 +12,6 @@ class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="رصيد")
-    async def balance(self, ctx, user: Optional[discord.Member] = None):
-        target = user or ctx.author
-        data   = get_user(self.bot.db, str(target.id))
-        total  = data["balance"] + data["bank"]
-        xp_need = data["level"] * 1000
-        xp_cur  = data["xp"] % xp_need if xp_need else 0
-        e = emb(f"💳 رصيد {target.display_name}", color=C_GOLD)
-        e.add_field(name="💰 الإجمالي", value=f"**${fmt(total)}**", inline=False)
-        e.add_field(name="🪙 اليد",     value=f"${fmt(data['balance'])}", inline=True)
-        e.add_field(name="🏛️ البنك",   value=f"${fmt(data['bank'])}",    inline=True)
-        e.add_field(name="⚡ المستوى",  value=f"{get_rank(data['level'])} | Lv{data['level']}", inline=False)
-        e.add_field(name="📊 XP",       value=f"`{bar(xp_cur, xp_need)}` {xp_cur}/{xp_need}", inline=False)
-        e.add_field(name="🎮 ألعاب",    value=str(data["games_played"]), inline=True)
-        e.add_field(name="🏆 فوز",      value=str(data["wins"]),         inline=True)
-        e.add_field(name="💀 خسارة",    value=str(data["losses"]),       inline=True)
-        await ctx.send(embed=e)
-
     @commands.command(name="يومي")
     async def daily(self, ctx):
         data = get_user(self.bot.db, str(ctx.author.id))
@@ -117,20 +99,6 @@ class Economy(commands.Cog):
         target["balance"] += amount
         save_db(self.bot.db)
         await ctx.send(embed=emb("🎁 هدية!", f"{ctx.author.mention} أهدى {user.mention}\n**${amount:,}** 🎁", C_GREEN))
-
-    @commands.command(name="مطنوخين")
-    async def top(self, ctx):
-        users = [
-            (ctx.guild.get_member(int(uid)), d["balance"] + d["bank"], d["level"])
-            for uid, d in self.bot.db.items()
-            if ctx.guild.get_member(int(uid))
-        ]
-        users.sort(key=lambda x: x[1], reverse=True)
-        medals = ["🥇","🥈","🥉","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟"]
-        e = emb("🏆 قائمة المطنوخين", "أغنى أعضاء عائلة يونان 👑", C_GOLD)
-        for i, (member, total, lvl) in enumerate(users[:10]):
-            e.add_field(name=f"{medals[i]} {member.display_name}", value=f"💰 ${fmt(total)} | {get_rank(lvl)}", inline=False)
-        await ctx.send(embed=e)
 
     @commands.command(name="شراء")
     async def shop(self, ctx, item: Optional[str] = None, amount: int = 1):
