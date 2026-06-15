@@ -1,4 +1,2 @@
-discord.py
-Pillow
-aiohttp
-requests
+arabic-reshaper
+python-bidi
