@@ -7,7 +7,8 @@ from io import BytesIO
 from utils.db import get_user, save_db
 from utils.helpers import fmt, get_rank
 
-PROFILE_BG = "PROFILE_BG.png"   # الصورة الأفقية الجديدة
+PROFILE_BG = "DFDE05FC-39AA-42A6-875F-B319DB14C725.png"
+# الصورة الأفقية الجديدة
 TOP_BG     = "TOP_BG.png"       # صورة التوب الجديدة
 
 
