@@ -1,2 +1,3 @@
-arabic-reshaper
-python-bidi
+discord.py
+pillow
+requests
